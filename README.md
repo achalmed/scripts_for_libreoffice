@@ -1,4 +1,4 @@
-# convert_ms_to_odf.sh – Conversor Masivo Microsoft Office → OpenDocument
+#  Conversor Masivo Microsoft Office → OpenDocument
 
 ![LibreOffice](https://img.shields.io/badge/LibreOffice-7%2B-blue) ![bash](https://img.shields.io/badge/bash-4%2B-green) ![license](https://img.shields.io/github/license/edisonachalma/convert_ms_to_odf.sh)
 
@@ -87,11 +87,13 @@ Presentaciones:
 
 ## Formatos soportados
 
-| Tipo               | Entrada                     → Salida |
-|--------------------|------------------------------|----------|
-| Documentos         | .docx, .doc, .dotx           | .odt, .ott |
-| Hojas de cálculo   | .xlsx, .xls, .xlsm, .xltx    | .ods, .ots |
-| Presentaciones     | .pptx, .ppt, .pptm, .ppsx, .pps, .potx → .odp, .otp |
+
+| Tipo             | Entrada                                | Salida     |
+| ---------------- | -------------------------------------- | ---------- |
+| Documentos       | .docx, .doc, .dotx                     | .odt, .ott |
+| Hojas de cálculo | .xlsx, .xls, .xlsm, .xltx              | .ods, .ots |
+| Presentaciones   | .pptx, .ppt, .pptm, .ppsx, .pps, .potx | .odp, .otp |
+
 
 ## Licencia
 
