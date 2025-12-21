@@ -2,6 +2,8 @@
 
 ![LibreOffice](https://img.shields.io/badge/LibreOffice-7%2B-blue) ![bash](https://img.shields.io/badge/bash-4%2B-green) ![license](https://img.shields.io/github/license/edisonachalma/convert_ms_to_odf.sh)
 
+#readme
+
 Script en Bash que convierte **recursivamente** todos tus archivos de Microsoft Office (.docx, .xlsx, .pptx, etc.) a formatos abiertos **OpenDocument** (.odt, .ods, .odp, …) usando LibreOffice en modo headless.
 
 Mantiene la estructura exacta de carpetas y **elimina automáticamente los archivos originales** solo cuando la conversión ha sido exitosa.
