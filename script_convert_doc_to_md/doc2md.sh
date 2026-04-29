@@ -3,20 +3,34 @@
 #  doc2md.sh — Conversor recursivo de documentos Office a Markdown
 #  Soporta: .docx  .odt  .pptx  .odp
 #
-#  Estructura de salida por cada archivo convertido:
-#    <destino>/<ruta_relativa>/index.md
-#    <destino>/<ruta_relativa>/index_files/figure-md/fig-001.png ...
+#  Comportamiento:
+#    · El .md se guarda EN EL MISMO DIRECTORIO que el archivo original
+#    · El .md recibe el MISMO NOMBRE que el original (solo cambia la extensión)
+#    · Las imágenes se extraen en <nombre>_files/figure-md/ junto al .md
+#    · La estructura de carpetas NO se modifica ni replica
 #
-#  Autor  : Edison Achalma <achalmaedison>
-#  Repo   : https://github.com/achalmed/doc2md
-#  Versión: 1.0.0
+#  Ejemplos de salida:
+#    ideas/2017.../index.odt  →  ideas/2017.../index.md
+#                                ideas/2017.../index_files/figure-md/fig-001.png
+#    docs/informe.docx        →  docs/informe.md
+#                                docs/informe_files/figure-md/fig-001.png
+#
+#  Autor   : Edison Achalma — github.com/achalmed
+#  Script  : ~/Documents/scripts_for_libreoffice/script_convert_doc_to_md/doc2md.sh
+#  Versión : 2.0.0
 #  Licencia: MIT
 # =============================================================================
 
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# COLORES para la terminal
+# DIRECTORIO DONDE VIVE ESTE SCRIPT (siempre el mismo lugar)
+# ---------------------------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
+
+# ---------------------------------------------------------------------------
+# COLORES
 # ---------------------------------------------------------------------------
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 BLUE='\033[0;34m'; CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
@@ -24,100 +38,152 @@ BLUE='\033[0;34m'; CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
 # ---------------------------------------------------------------------------
 # VALORES POR DEFECTO
 # ---------------------------------------------------------------------------
-INPUT_DIR=""
-OUTPUT_DIR=""
+TARGET_DIR=""               # Directorio a escanear (requerido)
 VERBOSE=false
 DRY_RUN=false
 OVERWRITE=false
+DELETE_CONVERTED=false      # Eliminar SOLO los archivos Office ya convertidos
 FORMATS=("docx" "odt" "pptx" "odp")
 LOG_FILE=""
 PANDOC_EXTRA_ARGS=""
-IMG_FORMAT="png"          # png | jpg | webp
-IMG_QUALITY=90            # 1-100 (para jpg/webp)
-FLATTEN=false             # Si true, no replica estructura de directorios
-SUMMARY_FILE=""           # Archivo resumen al final
+IMG_FORMAT="png"            # png | jpg | webp
+IMG_QUALITY=90              # 1-100 (para jpg/webp)
+SUMMARY_FILE=""
+
+# ── Carpetas excluidas por defecto ──────────────────────────────────────────
+# Edita esta lista para agregar exclusiones permanentes.
+# Puedes usar nombres de carpeta simples o rutas absolutas.
+# También se pueden añadir en tiempo de ejecución con --exclude.
+declare -a EXCLUDE_DIRS=(
+    ".git"
+    ".svn"
+    "node_modules"
+    "__pycache__"
+    ".trash"
+    "Trash"
+    ".Trash"
+)
 
 # Contadores globales
 COUNT_OK=0
 COUNT_SKIP=0
 COUNT_ERR=0
+COUNT_DELETE=0
 COUNT_TOTAL=0
 declare -a ERRORS=()
+declare -a CONVERTED_FILES=()   # lista de archivos Office convertidos con éxito
 
 # ---------------------------------------------------------------------------
-# FUNCIONES DE UTILIDAD
+# FUNCIONES DE LOG
 # ---------------------------------------------------------------------------
 log()      { echo -e "${BLUE}[INFO]${RESET}  $*"; }
 log_ok()   { echo -e "${GREEN}[OK]${RESET}    $*"; }
 log_warn() { echo -e "${YELLOW}[WARN]${RESET}  $*"; }
 log_err()  { echo -e "${RED}[ERROR]${RESET} $*" >&2; }
 log_dbg()  { $VERBOSE && echo -e "${CYAN}[DEBUG]${RESET} $*" || true; }
-log_sep()  { echo -e "${BOLD}──────────────────────────────────────────────────${RESET}"; }
+log_sep()  { echo -e "${BOLD}──────────────────────────────────────────────${RESET}"; }
 
 die() { log_err "$*"; exit 1; }
 
+# ---------------------------------------------------------------------------
+# AYUDA
+# ---------------------------------------------------------------------------
 usage() {
 cat << EOF
 ${BOLD}USO${RESET}
-    $(basename "$0") [OPCIONES] -i <DIRECTORIO_ENTRADA> -o <DIRECTORIO_SALIDA>
+    ${SCRIPT_NAME} [OPCIONES] <DIRECTORIO>
 
-${BOLD}OPCIONES REQUERIDAS${RESET}
-    -i, --input   <dir>     Directorio fuente (se escanea recursivamente)
-    -o, --output  <dir>     Directorio de destino para los .md generados
+    Convierte recursivamente archivos Office a Markdown.
+    El .md se genera EN EL MISMO LUGAR que el archivo original,
+    con el MISMO NOMBRE (solo cambia la extensión).
 
-${BOLD}OPCIONES GENERALES${RESET}
+${BOLD}ARGUMENTO${RESET}
+    <DIRECTORIO>            Directorio raíz a escanear (requerido)
+
+${BOLD}OPCIONES DE CONVERSIÓN${RESET}
     -f, --formats <lista>   Formatos a convertir, separados por coma
                             Por defecto: docx,odt,pptx,odp
-                            Ejemplo: --formats docx,odt
+                            Ejemplo: -f docx,odt
 
-    -w, --overwrite         Sobreescribir archivos .md ya existentes
-                            (por defecto se omiten)
+    -w, --overwrite         Sobreescribir .md ya existentes
+                            (por defecto se omiten si ya existen)
 
-    --flatten               No replicar estructura de subdirectorios;
-                            todos los .md van al raíz del directorio de salida
-
-    --img-format <fmt>      Formato de las imágenes extraídas: png | jpg | webp
+    --img-format <fmt>      Formato de las imágenes: png | jpg | webp
                             Por defecto: png
 
     --img-quality <n>       Calidad de imagen para jpg/webp (1-100)
                             Por defecto: 90
 
     --pandoc-args <args>    Argumentos extra para pandoc (entre comillas)
-                            Ejemplo: '--wrap=none --toc'
+                            Ejemplo: --pandoc-args '--wrap=none --toc'
 
-    -l, --log <archivo>     Guardar log en un archivo (además de stdout)
+${BOLD}OPCIONES DE EXCLUSIÓN${RESET}
+    -e, --exclude <nombre>  Excluir carpeta por nombre o ruta absoluta.
+                            Se puede usar múltiples veces:
+                              -e carpeta1 -e carpeta2
+                            También acepta lista separada por coma:
+                              -e "carpeta1,carpeta2"
+
+    --no-default-excludes   No aplicar la lista de exclusiones por defecto
+                            (útil si quieres procesar .git u otras carpetas)
+
+${BOLD}OPCIONES DE LIMPIEZA${RESET}
+    --delete-converted      Eliminar los archivos Office SOLO si fueron
+                            convertidos exitosamente en esta ejecución.
+                            NO elimina archivos que ya existían antes,
+                            ni archivos que fallaron, ni ningún otro archivo.
+                            PRECAUCION: Usa --dry-run primero para verificar.
+
+${BOLD}OPCIONES DE REGISTRO${RESET}
+    -l, --log <archivo>     Guardar log en archivo (además de stdout)
     -s, --summary <archivo> Generar archivo resumen de la conversión
 
+${BOLD}OTRAS OPCIONES${RESET}
     -v, --verbose           Salida detallada
-    -n, --dry-run           Simular sin escribir nada
+    -n, --dry-run           Simular sin escribir nada (muy recomendado antes
+                            de usar --delete-converted)
     -h, --help              Mostrar esta ayuda
 
-${BOLD}EJEMPLOS${RESET}
-    # Conversión básica
-    $(basename "$0") -i ~/Documentos -o ~/Markdown
+${BOLD}ESTRUCTURA DE SALIDA${RESET}
+    Para cada archivo convertido:
 
-    # Solo .docx y .odt, sobreescribir existentes
-    $(basename "$0") -i ~/Documentos -o ~/Markdown -f docx,odt -w
+        ideas/2017.../index.odt
+        ideas/2017.../index.md                      <- mismo nombre
+        ideas/2017.../index_files/figure-md/
+            fig-001.png
+            fig-002.png
+
+        docs/informe.docx
+        docs/informe.md
+        docs/informe_files/figure-md/
+            fig-001.png
+
+${BOLD}CARPETAS EXCLUIDAS POR DEFECTO${RESET}
+    ${EXCLUDE_DIRS[*]}
+
+    Edita la sección EXCLUDE_DIRS en el script para cambiarlas permanentemente.
+
+${BOLD}EJEMPLOS${RESET}
+    # Convertir todo en ~/Documents/ideas (salida en el mismo lugar)
+    ${SCRIPT_NAME} ~/Documents/ideas
+
+    # Solo .odt y .docx, sobreescribir existentes
+    ${SCRIPT_NAME} -f odt,docx -w ~/Documents/ideas
+
+    # Excluir carpetas especificas
+    ${SCRIPT_NAME} -e notas -e borradores ~/Documents/ideas
+
+    # Ver que se convertiria sin hacer nada (dry-run)
+    ${SCRIPT_NAME} -n -v ~/Documents/ideas
+
+    # Convertir y luego eliminar los originales convertidos
+    ${SCRIPT_NAME} --delete-converted ~/Documents/ideas
 
     # Con log y resumen
-    $(basename "$0") -i ./docs -o ./md -l conversion.log -s resumen.txt -v
+    ${SCRIPT_NAME} -l ~/doc2md.log -s ~/resumen.txt ~/Documents/ideas
 
-    # Imágenes en JPEG de alta calidad
-    $(basename "$0") -i ./docs -o ./md --img-format jpg --img-quality 95
-
-${BOLD}ESTRUCTURA DE SALIDA${RESET}
-    Para cada archivo convertido se genera:
-        <salida>/<ruta_relativa>/
-            index.md                     ← contenido Markdown
-            index_files/
-                figure-md/
-                    fig-001.png          ← imágenes extraídas y renombradas
-                    fig-002.png
-                    ...
-
-${BOLD}DEPENDENCIAS${RESET}
-    Requeridas : pandoc, python3
-    Opcionales : libreoffice (fallback para pptx/odp), imagemagick (optimización)
+${BOLD}UBICACION DEL SCRIPT${RESET}
+    ${SCRIPT_DIR}/${SCRIPT_NAME}
 EOF
     exit 0
 }
@@ -133,12 +199,13 @@ check_deps() {
     if [[ ${#missing[@]} -gt 0 ]]; then
         die "Dependencias faltantes: ${missing[*]}\n  Instala con: sudo pacman -S ${missing[*]}"
     fi
-    # Avisos opcionales
     command -v libreoffice &>/dev/null || \
         log_warn "libreoffice no encontrado — fallback para pptx/odp puede fallar"
-    command -v magick &>/dev/null || command -v convert &>/dev/null || \
-        log_warn "imagemagick no encontrado — optimización de imágenes desactivada"
+    command -v magick  &>/dev/null || \
+    command -v convert &>/dev/null || \
+        log_dbg "imagemagick no encontrado — optimizacion de imagenes desactivada"
     log_dbg "Pandoc: $(pandoc --version | head -1)"
+    log_dbg "Script : ${SCRIPT_DIR}/${SCRIPT_NAME}"
 }
 
 # ---------------------------------------------------------------------------
@@ -147,78 +214,92 @@ check_deps() {
 parse_args() {
     [[ $# -eq 0 ]] && usage
 
+    local extra_excludes=()
+    local no_default_excludes=false
+
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -i|--input)       INPUT_DIR="$2";          shift 2 ;;
-            -o|--output)      OUTPUT_DIR="$2";         shift 2 ;;
             -f|--formats)
-                IFS=',' read -ra FORMATS <<< "$2";     shift 2 ;;
-            -w|--overwrite)   OVERWRITE=true;          shift   ;;
-            --flatten)        FLATTEN=true;            shift   ;;
-            --img-format)     IMG_FORMAT="$2";         shift 2 ;;
-            --img-quality)    IMG_QUALITY="$2";        shift 2 ;;
-            --pandoc-args)    PANDOC_EXTRA_ARGS="$2";  shift 2 ;;
-            -l|--log)         LOG_FILE="$2";           shift 2 ;;
-            -s|--summary)     SUMMARY_FILE="$2";       shift 2 ;;
-            -v|--verbose)     VERBOSE=true;            shift   ;;
-            -n|--dry-run)     DRY_RUN=true;            shift   ;;
-            -h|--help)        usage ;;
-            *) die "Opción desconocida: $1 (usa -h para ayuda)" ;;
+                IFS=',' read -ra FORMATS <<< "$2"; shift 2 ;;
+            -w|--overwrite)
+                OVERWRITE=true; shift ;;
+            --img-format)
+                IMG_FORMAT="$2"; shift 2 ;;
+            --img-quality)
+                IMG_QUALITY="$2"; shift 2 ;;
+            --pandoc-args)
+                PANDOC_EXTRA_ARGS="$2"; shift 2 ;;
+            -e|--exclude)
+                IFS=',' read -ra _ex <<< "$2"
+                extra_excludes+=("${_ex[@]}")
+                shift 2 ;;
+            --no-default-excludes)
+                no_default_excludes=true; shift ;;
+            --delete-converted)
+                DELETE_CONVERTED=true; shift ;;
+            -l|--log)
+                LOG_FILE="$2"; shift 2 ;;
+            -s|--summary)
+                SUMMARY_FILE="$2"; shift 2 ;;
+            -v|--verbose)
+                VERBOSE=true; shift ;;
+            -n|--dry-run)
+                DRY_RUN=true; shift ;;
+            -h|--help)
+                usage ;;
+            -*)
+                die "Opcion desconocida: $1  (usa -h para ayuda)" ;;
+            *)
+                [[ -n "$TARGET_DIR" ]] && \
+                    die "Demasiados argumentos. Solo se acepta un directorio."
+                TARGET_DIR="$1"; shift ;;
         esac
     done
 
     # Validaciones
-    [[ -z "$INPUT_DIR"  ]] && die "Falta -i/--input"
-    [[ -z "$OUTPUT_DIR" ]] && die "Falta -o/--output"
-    [[ ! -d "$INPUT_DIR" ]] && die "Directorio de entrada no existe: $INPUT_DIR"
+    [[ -z "$TARGET_DIR" ]] && \
+        die "Falta el directorio a escanear.\n  Uso: ${SCRIPT_NAME} [OPCIONES] <DIRECTORIO>"
+    [[ ! -d "$TARGET_DIR" ]] && die "El directorio no existe: $TARGET_DIR"
+    TARGET_DIR="$(realpath "$TARGET_DIR")"
+
     [[ "$IMG_FORMAT" =~ ^(png|jpg|webp)$ ]] || \
         die "--img-format debe ser png, jpg o webp"
     [[ "$IMG_QUALITY" =~ ^[0-9]+$ ]] && \
         [[ "$IMG_QUALITY" -ge 1 && "$IMG_QUALITY" -le 100 ]] || \
-        die "--img-quality debe ser un número entre 1 y 100"
+        die "--img-quality debe ser un numero entre 1 y 100"
 
-    # Redirigir también a log si se pidió
+    # Construir lista final de exclusiones
+    $no_default_excludes && EXCLUDE_DIRS=()
+    EXCLUDE_DIRS+=("${extra_excludes[@]}")
+
+    # Redirigir a log si se pidio
     if [[ -n "$LOG_FILE" ]]; then
         exec > >(tee -a "$LOG_FILE") 2>&1
     fi
-}
 
-# ---------------------------------------------------------------------------
-# OBTENER RUTA DE SALIDA para un archivo fuente dado
-# ---------------------------------------------------------------------------
-get_output_dir() {
-    local src_file="$1"          # ruta absoluta del fuente
-    local src_base               # nombre sin extensión
-    src_base=$(basename "$src_file")
-    src_base="${src_base%.*}"
-
-    if $FLATTEN; then
-        echo "${OUTPUT_DIR}/${src_base}"
-    else
-        # Replicar estructura relativa al INPUT_DIR
-        local rel_dir
-        rel_dir=$(dirname "${src_file#$INPUT_DIR/}")
-        if [[ "$rel_dir" == "." ]]; then
-            echo "${OUTPUT_DIR}/${src_base}"
-        else
-            echo "${OUTPUT_DIR}/${rel_dir}/${src_base}"
-        fi
+    # Advertencia de seguridad para --delete-converted
+    if $DELETE_CONVERTED && ! $DRY_RUN; then
+        log_warn "──────────────────────────────────────────────────────────"
+        log_warn "  --delete-converted activado:"
+        log_warn "  Se eliminaran los archivos Office convertidos con exito."
+        log_warn "  Usa -n (dry-run) primero si tienes dudas."
+        log_warn "──────────────────────────────────────────────────────────"
     fi
 }
 
 # ---------------------------------------------------------------------------
-# RENOMBRAR IMÁGENES al formato fig-NNN.ext y dejarlas en figure-md/
+# RENOMBRAR IMAGENES → fig-NNN.ext dentro de figures_dir
 # ---------------------------------------------------------------------------
 rename_figures() {
     local figures_dir="$1"
     local counter=0
-
-    # Recoger todas las imágenes generadas por pandoc
     local tmplist
     tmplist=$(mktemp)
+
     find "$figures_dir" -maxdepth 1 -type f \
         \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" \
-           -o -iname "*.gif" -o -iname "*.svg" -o -iname "*.webp" \) \
+           -o -iname "*.gif" -o -iname "*.svg" -o -iname "*.webp" \
+           -o -iname "*.bmp" -o -iname "*.tiff" \) \
         | sort > "$tmplist"
 
     while IFS= read -r img_path; do
@@ -227,50 +308,43 @@ rename_figures() {
         local new_name
         printf -v new_name "fig-%03d.%s" "$counter" "${ext,,}"
         local new_path="${figures_dir}/${new_name}"
-
-        if [[ "$img_path" != "$new_path" ]]; then
-            mv "$img_path" "$new_path"
-            log_dbg "  Renombrado: $(basename "$img_path") → ${new_name}"
-        fi
+        [[ "$img_path" != "$new_path" ]] && mv "$img_path" "$new_path"
+        log_dbg "  Figura: $(basename "$img_path") → ${new_name}"
     done < "$tmplist"
-    rm -f "$tmplist"
 
-    echo "$counter"   # devuelve número de figuras procesadas
+    rm -f "$tmplist"
+    echo "$counter"
 }
 
 # ---------------------------------------------------------------------------
-# OPTIMIZAR IMAGEN con imagemagick (si disponible y no es PNG puro)
+# OPTIMIZAR IMAGEN con imagemagick
 # ---------------------------------------------------------------------------
 optimize_image() {
     local img="$1"
     local magick_bin=""
     command -v magick  &>/dev/null && magick_bin="magick"
-    command -v convert &>/dev/null && magick_bin="convert"
+    command -v convert &>/dev/null && magick_bin="${magick_bin:-convert}"
     [[ -z "$magick_bin" ]] && return 0
 
     case "$IMG_FORMAT" in
         jpg)
             $magick_bin "$img" -quality "$IMG_QUALITY" \
                 "${img%.*}.jpg" 2>/dev/null && \
-            [[ "${img%.*}.jpg" != "$img" ]] && rm -f "$img" || true
-            ;;
+            [[ "${img%.*}.jpg" != "$img" ]] && rm -f "$img" || true ;;
         webp)
             $magick_bin "$img" -quality "$IMG_QUALITY" \
                 "${img%.*}.webp" 2>/dev/null && \
-            [[ "${img%.*}.webp" != "$img" ]] && rm -f "$img" || true
-            ;;
-        *) : ;;   # PNG no necesita conversión extra
+            [[ "${img%.*}.webp" != "$img" ]] && rm -f "$img" || true ;;
+        *) : ;;
     esac
 }
 
 # ---------------------------------------------------------------------------
-# CORREGIR rutas de imagen en el .md generado
-# Los paths que pandoc escribe pueden ser absolutos o relativos al tmpdir.
-# Los normalizamos a: index_files/figure-md/fig-NNN.ext
+# CORREGIR rutas de imagen en el .md
 # ---------------------------------------------------------------------------
 fix_image_paths() {
     local md_file="$1"
-    local figures_rel="index_files/figure-md"
+    local figures_rel="$2"
 
     python3 - "$md_file" "$figures_rel" << 'PYEOF'
 import sys, re, os
@@ -281,7 +355,6 @@ figures_rel = sys.argv[2]
 with open(md_file, 'r', encoding='utf-8') as f:
     content = f.read()
 
-# Patrones pandoc: ![alt](path) y ![alt](path "title")
 img_pattern = re.compile(
     r'!\[([^\]]*)\]\(([^)]+?)(\s+"[^"]*")?\)',
     re.MULTILINE
@@ -303,7 +376,7 @@ PYEOF
 }
 
 # ---------------------------------------------------------------------------
-# CONVERTIR UN SOLO ARCHIVO
+# CONVERTIR UN ARCHIVO
 # ---------------------------------------------------------------------------
 convert_file() {
     local src_file="$1"
@@ -312,33 +385,42 @@ convert_file() {
 
     COUNT_TOTAL=$(( COUNT_TOTAL + 1 ))
 
-    # Directorio y archivo de salida
-    local out_dir
-    out_dir=$(get_output_dir "$src_file")
-    local out_md="${out_dir}/index.md"
-    local figures_dir="${out_dir}/index_files/figure-md"
+    # El .md va en el MISMO DIRECTORIO con el MISMO NOMBRE BASE
+    local src_dir
+    src_dir=$(dirname "$src_file")
+    local src_base
+    src_base=$(basename "$src_file")
+    local name_no_ext="${src_base%.*}"
+
+    local out_md="${src_dir}/${name_no_ext}.md"
+    local figures_dir="${src_dir}/${name_no_ext}_files/figure-md"
+    local figures_rel="${name_no_ext}_files/figure-md"
 
     log_sep
-    log "Procesando: ${BOLD}$(basename "$src_file")${RESET}"
-    log_dbg "  Fuente : $src_file"
-    log_dbg "  Destino: $out_md"
+    log "Procesando: ${BOLD}${src_base}${RESET}"
+    log_dbg "  Dir    : $src_dir"
+    log_dbg "  Salida : $out_md"
 
-    # ── Comprobar si ya existe ──────────────────────────────────────────────
+    # ¿Ya existe el .md?
     if [[ -f "$out_md" ]] && ! $OVERWRITE; then
-        log_warn "Ya existe (usa -w para sobreescribir): $out_md"
+        log_warn "Ya existe (usa -w para sobreescribir): $(basename "$out_md")"
         COUNT_SKIP=$(( COUNT_SKIP + 1 ))
         return 0
     fi
 
-    $DRY_RUN && { log "[DRY-RUN] Se crearía: $out_md"; return 0; }
+    # Dry-run
+    if $DRY_RUN; then
+        log "[DRY-RUN] Se crearia: $out_md"
+        $DELETE_CONVERTED && log "[DRY-RUN] Se eliminaria: $src_file"
+        COUNT_OK=$(( COUNT_OK + 1 ))
+        CONVERTED_FILES+=("$src_file")
+        return 0
+    fi
 
-    # ── Crear directorios ───────────────────────────────────────────────────
+    # Crear directorio de figuras
     mkdir -p "$figures_dir"
 
-    # ── Construir comando pandoc ────────────────────────────────────────────
-    # --extract-media vuelca las imágenes en la carpeta que indiquemos.
-    # Usamos un directorio temporal para que pandoc no cree subcarpetas propias
-    # y luego movemos todo a figures_dir.
+    # Pandoc
     local tmp_media
     tmp_media=$(mktemp -d)
 
@@ -350,47 +432,41 @@ convert_file() {
         --extract-media="$tmp_media"
         --output="$out_md"
     )
+    # shellcheck disable=SC2206
+    [[ -n "$PANDOC_EXTRA_ARGS" ]] && pandoc_opts+=( $PANDOC_EXTRA_ARGS )
 
-    # Añadir argumentos extra del usuario (si existen)
-    if [[ -n "$PANDOC_EXTRA_ARGS" ]]; then
-        # shellcheck disable=SC2206
-        pandoc_opts+=( $PANDOC_EXTRA_ARGS )
-    fi
-
-    # ── Ejecutar pandoc ─────────────────────────────────────────────────────
     local pandoc_ok=true
-    if ! pandoc "${pandoc_opts[@]}" "$src_file" 2>/tmp/pandoc_stderr.txt; then
+    if ! pandoc "${pandoc_opts[@]}" "$src_file" 2>/tmp/doc2md_stderr.txt; then
         pandoc_ok=false
     fi
 
-    # Para pptx/odp: si pandoc falla, intentar con LibreOffice como pre-conversión
+    # Fallback LibreOffice para pptx/odp
     if ! $pandoc_ok && [[ "$src_ext" =~ ^(pptx|odp)$ ]]; then
-        log_warn "Pandoc falló para $src_ext, intentando pre-conversión con LibreOffice..."
-        local tmp_odt
-        tmp_odt=$(mktemp --suffix=".odt")
-        if libreoffice --headless --convert-to odt --outdir "$(dirname "$tmp_odt")" \
-               "$src_file" &>/dev/null; then
+        log_warn "Pandoc fallo, intentando pre-conversion con LibreOffice..."
+        if libreoffice --headless --convert-to odt \
+               --outdir "$tmp_media" "$src_file" &>/dev/null; then
             local lo_out
-            lo_out="$(dirname "$tmp_odt")/$(basename "${src_file%.*}.odt")"
-            pandoc_opts[0]="--from=odt"
-            if pandoc "${pandoc_opts[@]}" "$lo_out" 2>/tmp/pandoc_stderr.txt; then
-                pandoc_ok=true
+            lo_out=$(find "$tmp_media" -maxdepth 1 -name "*.odt" | head -1)
+            if [[ -n "$lo_out" ]]; then
+                pandoc_opts[0]="--from=odt"
+                pandoc "${pandoc_opts[@]}" "$lo_out" 2>/tmp/doc2md_stderr.txt && \
+                    pandoc_ok=true || true
             fi
-            rm -f "$lo_out"
         fi
-        rm -f "$tmp_odt"
     fi
 
     if ! $pandoc_ok; then
-        log_err "Falló la conversión de: $src_file"
-        log_err "  $(cat /tmp/pandoc_stderr.txt)"
+        log_err "Fallo la conversion: $src_file"
+        log_err "  $(cat /tmp/doc2md_stderr.txt)"
         ERRORS+=("$src_file")
         COUNT_ERR=$(( COUNT_ERR + 1 ))
         rm -rf "$tmp_media"
+        rmdir "$figures_dir" 2>/dev/null || true
+        rmdir "${src_dir}/${name_no_ext}_files" 2>/dev/null || true
         return 1
     fi
 
-    # ── Mover imágenes extraídas → figures_dir ──────────────────────────────
+    # Mover imagenes al directorio de figuras
     if [[ -d "$tmp_media" ]]; then
         find "$tmp_media" -type f \
             \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" \
@@ -400,13 +476,10 @@ convert_file() {
         rm -rf "$tmp_media"
     fi
 
-    # ── Renombrar figuras a fig-NNN.ext ─────────────────────────────────────
+    # Renombrar figuras
     local n_figs=0
-    if [[ -d "$figures_dir" ]] && \
-       [[ -n "$(ls -A "$figures_dir" 2>/dev/null)" ]]; then
+    if [[ -d "$figures_dir" ]] && [[ -n "$(ls -A "$figures_dir" 2>/dev/null)" ]]; then
         n_figs=$(rename_figures "$figures_dir")
-
-        # Optimización opcional de imágenes
         if [[ "$IMG_FORMAT" != "png" ]]; then
             find "$figures_dir" -type f | while read -r img; do
                 optimize_image "$img"
@@ -414,45 +487,88 @@ convert_file() {
         fi
     fi
 
-    # ── Corregir rutas de imagen en el .md ──────────────────────────────────
-    fix_image_paths "$out_md"
-
-    # ── Limpiar figures_dir si quedó vacío ──────────────────────────────────
-    if [[ -d "$figures_dir" ]] && \
-       [[ -z "$(ls -A "$figures_dir" 2>/dev/null)" ]]; then
+    # Limpiar directorio de figuras si quedo vacio
+    if [[ -d "$figures_dir" ]] && [[ -z "$(ls -A "$figures_dir" 2>/dev/null)" ]]; then
         rmdir "$figures_dir" 2>/dev/null || true
-        rmdir "${out_dir}/index_files" 2>/dev/null || true
+        rmdir "${src_dir}/${name_no_ext}_files" 2>/dev/null || true
     fi
 
+    # Corregir rutas de imagen en el .md
+    fix_image_paths "$out_md" "$figures_rel"
+
     COUNT_OK=$(( COUNT_OK + 1 ))
-    log_ok "Convertido → $out_md  [figuras: ${n_figs}]"
+    CONVERTED_FILES+=("$src_file")
+    log_ok "Listo → ${BOLD}$(basename "$out_md")${RESET}  [figuras: ${n_figs}]"
     return 0
 }
 
 # ---------------------------------------------------------------------------
-# BUSCAR ARCHIVOS y ejecutar conversiones
+# ELIMINAR ARCHIVOS CONVERTIDOS (solo los que tuvieron exito)
+# ---------------------------------------------------------------------------
+delete_converted() {
+    [[ ${#CONVERTED_FILES[@]} -eq 0 ]] && return 0
+
+    log_sep
+    log "Eliminando archivos Office convertidos..."
+
+    for src_file in "${CONVERTED_FILES[@]}"; do
+        if $DRY_RUN; then
+            log "[DRY-RUN] Se eliminaria: $src_file"
+            COUNT_DELETE=$(( COUNT_DELETE + 1 ))
+        elif [[ -f "$src_file" ]]; then
+            rm -f "$src_file"
+            COUNT_DELETE=$(( COUNT_DELETE + 1 ))
+            log_ok "Eliminado: $(basename "$src_file")   ← $(dirname "$src_file")/"
+        else
+            log_warn "No encontrado para eliminar: $src_file"
+        fi
+    done
+}
+
+# ---------------------------------------------------------------------------
+# ESCANEAR DIRECTORIO y convertir
 # ---------------------------------------------------------------------------
 run_conversions() {
-    # Construir la expresión -name para find
-    local find_args=( "$INPUT_DIR" -type f )
+    # Construir la expresion -name para find
     local name_exprs=()
     for fmt in "${FORMATS[@]}"; do
         name_exprs+=( -iname "*.${fmt}" -o )
     done
-    # Quitar el último '-o'
-    unset 'name_exprs[${#name_exprs[@]}-1]'
+    unset 'name_exprs[${#name_exprs[@]}-1]'   # quitar el ultimo -o
 
-    find_args+=( \( "${name_exprs[@]}" \) )
-
-    log "Escaneando: $INPUT_DIR"
-    log "Formatos  : ${FORMATS[*]}"
-    log "Destino   : $OUTPUT_DIR"
-    $DRY_RUN && log_warn "MODO DRY-RUN — no se escribirá nada"
+    log "Directorio : $TARGET_DIR"
+    log "Formatos   : ${FORMATS[*]}"
+    if [[ ${#EXCLUDE_DIRS[@]} -gt 0 ]]; then
+        log "Excluidas  : ${EXCLUDE_DIRS[*]}"
+    fi
+    $DRY_RUN         && log_warn "MODO DRY-RUN activo — no se escribira nada"
+    $DELETE_CONVERTED && log_warn "DELETE-CONVERTED activo — se eliminaran originales convertidos"
     log_sep
+
+    # Construir comando find con exclusiones como -prune
+    local find_cmd=( find "$TARGET_DIR" )
+
+    if [[ ${#EXCLUDE_DIRS[@]} -gt 0 ]]; then
+        find_cmd+=( \( )
+        local first=true
+        for excl in "${EXCLUDE_DIRS[@]}"; do
+            [[ -z "$excl" ]] && continue
+            $first || find_cmd+=( -o )
+            if [[ "$excl" == /* ]]; then
+                find_cmd+=( -path "$excl" )
+            else
+                find_cmd+=( -name "$excl" )
+            fi
+            first=false
+        done
+        find_cmd+=( \) -prune -o )
+    fi
+
+    find_cmd+=( -type f \( "${name_exprs[@]}" \) -print0 )
 
     while IFS= read -r -d '' src; do
         convert_file "$src" || true
-    done < <(find "${find_args[@]}" -print0 | sort -z)
+    done < <("${find_cmd[@]}" | sort -z)
 }
 
 # ---------------------------------------------------------------------------
@@ -463,36 +579,43 @@ print_summary() {
     ts=$(date '+%Y-%m-%d %H:%M:%S')
 
     log_sep
-    echo -e "${BOLD}RESUMEN DE CONVERSIÓN${RESET}  [$ts]"
-    echo -e "  Total encontrados : $COUNT_TOTAL"
-    echo -e "  ${GREEN}Convertidos OK    : $COUNT_OK${RESET}"
-    echo -e "  ${YELLOW}Omitidos (ya exist): $COUNT_SKIP${RESET}"
-    echo -e "  ${RED}Con errores       : $COUNT_ERR${RESET}"
+    echo -e "${BOLD}RESUMEN${RESET}  [$ts]"
+    echo -e "  Directorio            : $TARGET_DIR"
+    echo -e "  Total encontrados     : $COUNT_TOTAL"
+    echo -e "  ${GREEN}Convertidos OK        : $COUNT_OK${RESET}"
+    echo -e "  ${YELLOW}Omitidos (ya existen) : $COUNT_SKIP${RESET}"
+    echo -e "  ${RED}Con errores           : $COUNT_ERR${RESET}"
+    $DELETE_CONVERTED && \
+        echo -e "  ${RED}Originales eliminados : $COUNT_DELETE${RESET}"
 
     if [[ ${#ERRORS[@]} -gt 0 ]]; then
         echo -e "\n${RED}Archivos con error:${RESET}"
-        for e in "${ERRORS[@]}"; do
-            echo "  - $e"
-        done
+        for e in "${ERRORS[@]}"; do echo "  - $e"; done
     fi
     log_sep
 
-    # Guardar resumen en archivo si se pidió
     if [[ -n "$SUMMARY_FILE" ]]; then
         {
-            echo "=== doc2md — Resumen de conversión ==="
+            echo "=== doc2md v2.0.0 — Resumen de conversion ==="
             echo "Fecha     : $ts"
-            echo "Entrada   : $INPUT_DIR"
-            echo "Salida    : $OUTPUT_DIR"
+            echo "Script    : ${SCRIPT_DIR}/${SCRIPT_NAME}"
+            echo "Directorio: $TARGET_DIR"
             echo "Formatos  : ${FORMATS[*]}"
+            echo "Excluidas : ${EXCLUDE_DIRS[*]:-ninguna}"
             echo "Total     : $COUNT_TOTAL"
             echo "OK        : $COUNT_OK"
             echo "Omitidos  : $COUNT_SKIP"
             echo "Errores   : $COUNT_ERR"
+            $DELETE_CONVERTED && echo "Eliminados: $COUNT_DELETE"
             if [[ ${#ERRORS[@]} -gt 0 ]]; then
                 echo ""
                 echo "Archivos con error:"
                 for e in "${ERRORS[@]}"; do echo "  $e"; done
+            fi
+            if [[ ${#CONVERTED_FILES[@]} -gt 0 ]]; then
+                echo ""
+                echo "Archivos convertidos:"
+                for f in "${CONVERTED_FILES[@]}"; do echo "  $f"; done
             fi
         } > "$SUMMARY_FILE"
         log "Resumen guardado en: $SUMMARY_FILE"
@@ -510,16 +633,14 @@ main() {
     echo "  ██║  ██║██║   ██║██║     ██╔═══╝ ██║╚██╔╝██║██║  ██║"
     echo "  ██████╔╝╚██████╔╝╚██████╗███████╗██║ ╚═╝ ██║██████╔╝"
     echo "  ╚═════╝  ╚═════╝  ╚═════╝╚══════╝╚═╝     ╚═╝╚═════╝ "
-    echo -e "${RESET}${BOLD}  Conversor recursivo Office → Markdown  v1.0.0${RESET}"
+    echo -e "${RESET}${BOLD}  Conversor recursivo Office → Markdown  v2.0.0${RESET}"
+    echo -e "  ${CYAN}${SCRIPT_DIR}/${SCRIPT_NAME}${RESET}"
     echo ""
 
     parse_args "$@"
     check_deps
-
-    # Crear directorio de salida
-    $DRY_RUN || mkdir -p "$OUTPUT_DIR"
-
     run_conversions
+    $DELETE_CONVERTED && delete_converted
     print_summary
 
     [[ $COUNT_ERR -gt 0 ]] && exit 1 || exit 0

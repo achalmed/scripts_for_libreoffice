@@ -90,7 +90,7 @@ sudo pacman -S imagemagick         # optimización de imágenes
 ### 3. Verificar instalación
 
 ```bash
-doc2md --help
+./doc2md.sh --help
 ```
 
 ---
@@ -98,26 +98,26 @@ doc2md --help
 ## Uso
 
 ```
-doc2md [OPCIONES] -i <DIRECTORIO_ENTRADA> -o <DIRECTORIO_SALIDA>
+./doc2md.sh [OPCIONES] -i <DIRECTORIO_ENTRADA> -o <DIRECTORIO_SALIDA>
 ```
 
 ### Opciones
 
-| Opción | Descripción | Por defecto |
-|--------|-------------|-------------|
-| `-i, --input <dir>` | Directorio fuente (requerido) | — |
-| `-o, --output <dir>` | Directorio de salida (requerido) | — |
-| `-f, --formats <lista>` | Formatos separados por coma | `docx,odt,pptx,odp` |
-| `-w, --overwrite` | Sobreescribir `.md` existentes | No |
-| `--flatten` | No replicar subdirectorios | No |
-| `--img-format <fmt>` | Formato de imágenes: `png`/`jpg`/`webp` | `png` |
-| `--img-quality <n>` | Calidad jpg/webp (1-100) | `90` |
-| `--pandoc-args <args>` | Argumentos extra para pandoc | — |
-| `-l, --log <archivo>` | Guardar log en archivo | — |
-| `-s, --summary <archivo>` | Generar resumen de conversión | — |
-| `-v, --verbose` | Salida detallada | No |
-| `-n, --dry-run` | Simular sin escribir | No |
-| `-h, --help` | Mostrar ayuda | — |
+| Opción                    | Descripción                             | Por defecto         |
+| ------------------------- | --------------------------------------- | ------------------- |
+| `-i, --input <dir>`       | Directorio fuente (requerido)           | —                   |
+| `-o, --output <dir>`      | Directorio de salida (requerido)        | —                   |
+| `-f, --formats <lista>`   | Formatos separados por coma             | `docx,odt,pptx,odp` |
+| `-w, --overwrite`         | Sobreescribir `.md` existentes          | No                  |
+| `--flatten`               | No replicar subdirectorios              | No                  |
+| `--img-format <fmt>`      | Formato de imágenes: `png`/`jpg`/`webp` | `png`               |
+| `--img-quality <n>`       | Calidad jpg/webp (1-100)                | `90`                |
+| `--pandoc-args <args>`    | Argumentos extra para pandoc            | —                   |
+| `-l, --log <archivo>`     | Guardar log en archivo                  | —                   |
+| `-s, --summary <archivo>` | Generar resumen de conversión           | —                   |
+| `-v, --verbose`           | Salida detallada                        | No                  |
+| `-n, --dry-run`           | Simular sin escribir                    | No                  |
+| `-h, --help`              | Mostrar ayuda                           | —                   |
 
 ---
 
@@ -126,7 +126,7 @@ doc2md [OPCIONES] -i <DIRECTORIO_ENTRADA> -o <DIRECTORIO_SALIDA>
 ### Conversión básica
 
 ```bash
-doc2md -i ~/Documentos -o ~/Markdown
+./doc2md.sh -i ~/Documentos -o ~/Markdown
 ```
 
 ### Solo Word y ODT, sobreescribir existentes
@@ -174,24 +174,27 @@ doc2md -i ~/Documentos -o ~/Markdown --pandoc-args '--toc --toc-depth=3'
 
 ## Dependencias detalladas
 
-| Herramienta | Rol | Requerida |
-|-------------|-----|-----------|
-| `pandoc` | Motor principal de conversión | ✅ Sí |
-| `python3` | Corrección de rutas de imágenes | ✅ Sí |
-| `libreoffice` | Fallback para `.pptx` y `.odp` | ⚠️ Recomendada |
-| `imagemagick` | Conversión/optimización de imágenes | ⭕ Opcional |
+| Herramienta   | Rol                                 | Requerida      |
+| ------------- | ----------------------------------- | -------------- |
+| `pandoc`      | Motor principal de conversión       | ✅ Sí          |
+| `python3`     | Corrección de rutas de imágenes     | ✅ Sí          |
+| `libreoffice` | Fallback para `.pptx` y `.odp`      | ⚠️ Recomendada |
+| `imagemagick` | Conversión/optimización de imágenes | ⭕ Opcional    |
 
 ---
 
 ## Notas sobre formatos
 
 ### DOCX / ODT
+
 Pandoc convierte directamente con excelente fidelidad. Las imágenes incrustadas se extraen automáticamente.
 
 ### PPTX / ODP
+
 Pandoc soporta estas conversiones; el script intenta pandoc primero y, si falla, usa LibreOffice para pre-convertir a ODT y luego aplica pandoc. Se recomienda tener LibreOffice instalado.
 
 ### Imágenes SVG
+
 Se conservan como SVG cuando pandoc las extrae en ese formato. Para convertirlas a PNG/JPG, asegúrate de tener ImageMagick instalado.
 
 ---
@@ -199,15 +202,19 @@ Se conservan como SVG cuando pandoc las extrae en ese formato. Para convertirlas
 ## Solución de problemas
 
 ### "pandoc: Could not find image"
+
 Asegúrate de ejecutar el script con la ruta **absoluta** al directorio fuente o desde el mismo directorio.
 
 ### Las presentaciones no se convierten bien
+
 Instala LibreOffice: `sudo pacman -S libreoffice-still`
 
 ### Las imágenes no aparecen en el Markdown
+
 Verifica que el archivo original tenga imágenes incrustadas (no vinculadas externamente). Usa `-v` para ver el detalle del proceso.
 
 ### Error "Permission denied"
+
 ```bash
 chmod +x doc2md.sh
 ```
