@@ -1,82 +1,61 @@
 # doc2md — Conversor recursivo Office → Markdown
+#readme 
 
-**Convierte archivos `.docx`, `.odt`, `.pptx` y `.odp` a Markdown de forma recursiva**, replicando la estructura de directorios y extrayendo imágenes ordenadas por número de figura.
-
----
-
-## Características
-
-- 🔁 **Recursivo** — escanea toda la jerarquía de carpetas
-- 📁 **Estructura limpia** — cada documento genera su propio `index.md` + carpeta de figuras
-- 🖼️ **Imágenes organizadas** — extraídas y renombradas como `fig-001.png`, `fig-002.png`…
-- ⚡ **Múltiples formatos** — `docx`, `odt`, `pptx`, `odp`
-- 🔄 **Fallback LibreOffice** — para presentaciones cuando pandoc falla
-- 🛡️ **Seguro** — no sobreescribe por defecto; usa `-w` para forzar
-- 📋 **Log y resumen** — registra todo en archivo y genera informe final
-- 🏃 **Dry-run** — simula sin escribir nada (`-n`)
+Convierte archivos `.docx`, `.odt`, `.pptx` y `.odp` a Markdown **en el mismo lugar** donde están los archivos originales, de forma recursiva.
 
 ---
 
-## Estructura de salida
+## Cómo funciona
 
-Por cada archivo convertido:
-
-```
-<salida>/
-└── <subcarpeta_original>/
-    └── <nombre_documento>/
-        ├── index.md                  ← Contenido en Markdown
-        └── index_files/
-            └── figure-md/
-                ├── fig-001.png       ← Imágenes extraídas, ordenadas
-                ├── fig-002.png
-                └── ...
-```
-
-### Ejemplo real
+El `.md` se guarda **en el mismo directorio** que el archivo original y recibe el **mismo nombre**, solo cambia la extensión. Las imágenes se extraen ordenadas en una carpeta al lado del `.md`.
 
 ```
-~/Documentos/
-├── informe_2024.docx
-├── presentacion.pptx
-└── trabajos/
-    └── tesis.odt
-```
+antes:
+  ideas/2017-analisis/index.odt
+  ideas/informe.docx
 
-Se convierte en:
+después:
+  ideas/2017-analisis/index.odt          ← original intacto
+  ideas/2017-analisis/index.md           ← mismo nombre
+  ideas/2017-analisis/index_files/
+      figure-md/
+          fig-001.png
+          fig-002.png
 
-```
-~/Markdown/
-├── informe_2024/
-│   ├── index.md
-│   └── index_files/figure-md/
-│       ├── fig-001.png
-│       └── fig-002.png
-├── presentacion/
-│   ├── index.md
-│   └── index_files/figure-md/
-│       └── fig-001.png
-└── trabajos/
-    └── tesis/
-        └── index.md
+  ideas/informe.docx                     ← original intacto
+  ideas/informe.md
+  ideas/informe_files/
+      figure-md/
+          fig-001.png
 ```
 
 ---
 
 ## Instalación
 
-### 1. Clonar o copiar el script
+### Ubicación del script
+
+El script se aloja **siempre** en:
+
+```
+~/Documents/scripts_for_libreoffice/script_convert_doc_to_md/doc2md.sh
+```
+
+Para llamarlo desde cualquier lugar, crea un alias en tu `~/.zshrc` o `~/.bashrc`:
 
 ```bash
-# Opción A — directamente
-cp doc2md.sh ~/bin/doc2md
-chmod +x ~/bin/doc2md
+# En ~/.zshrc
+alias doc2md="~/Documents/scripts_for_libreoffice/script_convert_doc_to_md/doc2md.sh"
+```
 
-# Opción B — en /usr/local/bin (disponible para todos los usuarios)
+O instálalo en el PATH:
+
+```bash
+chmod +x doc2md.sh
 sudo install -m 755 doc2md.sh /usr/local/bin/doc2md
 ```
 
-### 2. Dependencias en Arch Linux
+### Dependencias en Arch Linux
 
 ```bash
 # Requeridas
@@ -87,92 +66,192 @@ sudo pacman -S libreoffice-still   # fallback para pptx/odp
 sudo pacman -S imagemagick         # optimización de imágenes
 ```
 
-### 3. Verificar instalación
-
-```bash
-./doc2md.sh --help
-```
-
 ---
 
 ## Uso
 
 ```
-./doc2md.sh [OPCIONES] -i <DIRECTORIO_ENTRADA> -o <DIRECTORIO_SALIDA>
+./doc2md.sh [OPCIONES] <DIRECTORIO>
 ```
+
+El directorio es el único argumento posicional. Las opciones van antes.
 
 ### Opciones
 
-| Opción                    | Descripción                             | Por defecto         |
-| ------------------------- | --------------------------------------- | ------------------- |
-| `-i, --input <dir>`       | Directorio fuente (requerido)           | —                   |
-| `-o, --output <dir>`      | Directorio de salida (requerido)        | —                   |
-| `-f, --formats <lista>`   | Formatos separados por coma             | `docx,odt,pptx,odp` |
-| `-w, --overwrite`         | Sobreescribir `.md` existentes          | No                  |
-| `--flatten`               | No replicar subdirectorios              | No                  |
-| `--img-format <fmt>`      | Formato de imágenes: `png`/`jpg`/`webp` | `png`               |
-| `--img-quality <n>`       | Calidad jpg/webp (1-100)                | `90`                |
-| `--pandoc-args <args>`    | Argumentos extra para pandoc            | —                   |
-| `-l, --log <archivo>`     | Guardar log en archivo                  | —                   |
-| `-s, --summary <archivo>` | Generar resumen de conversión           | —                   |
-| `-v, --verbose`           | Salida detallada                        | No                  |
-| `-n, --dry-run`           | Simular sin escribir                    | No                  |
-| `-h, --help`              | Mostrar ayuda                           | —                   |
+| Opción                    | Descripción                                                                              |
+| ------------------------- | ---------------------------------------------------------------------------------------- |
+| `-f, --formats <lista>`   | Formatos a convertir, separados por coma. Por defecto: `docx,odt,pptx,odp`               |
+| `-w, --overwrite`         | Sobreescribir `.md` ya existentes (por defecto se omiten)                                |
+| `--img-format <fmt>`      | Formato de imágenes extraídas: `png` / `jpg` / `webp`. Por defecto: `png`                |
+| `--img-quality <n>`       | Calidad para jpg/webp (1-100). Por defecto: `90`                                         |
+| `--pandoc-args <args>`    | Argumentos extra para pandoc (entre comillas)                                            |
+| `-e, --exclude <nombre>`  | Excluir carpeta por nombre o ruta absoluta. Usar varias veces para múltiples exclusiones |
+| `--no-default-excludes`   | No aplicar la lista de exclusiones por defecto                                           |
+| `--delete-converted`      | Eliminar los archivos Office **solo** si se convirtieron con éxito en esta ejecución     |
+| `-l, --log <archivo>`     | Guardar log en archivo además de stdout                                                  |
+| `-s, --summary <archivo>` | Generar archivo resumen de la conversión                                                 |
+| `-v, --verbose`           | Salida detallada                                                                         |
+| `-n, --dry-run`           | Simular sin escribir nada                                                                |
+| `-h, --help`              | Mostrar ayuda                                                                            |
 
 ---
 
 ## Ejemplos
 
-### Conversión básica
+### Conversión básica de toda la carpeta ideas
 
 ```bash
-./doc2md.sh -i ~/Documentos -o ~/Markdown
+./doc2md.sh ~/Documents/ideas
 ```
 
-### Solo Word y ODT, sobreescribir existentes
+### Solo .odt y .docx, sobreescribir existentes
 
 ```bash
-doc2md -i ~/Documentos -o ~/Markdown -f docx,odt -w
+./doc2md.sh -f odt,docx -w ~/Documents/ideas
 ```
 
-### Con log detallado y resumen
+### Excluir carpetas específicas
 
 ```bash
-doc2md -i ~/Documentos -o ~/Markdown \
-       -l ~/doc2md.log \
-       -s ~/doc2md-resumen.txt \
-       -v
+# Excluir por nombre (afecta a todos los niveles)
+./doc2md.sh -e notas -e borradores ~/Documents/ideas
+
+# Excluir por lista separada por coma
+./doc2md.sh -e "notas,borradores,trash" ~/Documents/ideas
+
+# Excluir por ruta absoluta
+./doc2md.sh -e /home/achalmaedison/Documents/ideas/privado ~/Documents/ideas
+```
+
+### Ver qué se convertiría sin hacer nada (dry-run)
+
+```bash
+./doc2md.sh -n -v ~/Documents/ideas
+```
+
+### Convertir y eliminar los originales convertidos
+
+```bash
+# Primero verificar con dry-run
+./doc2md.sh -n --delete-converted ~/Documents/ideas
+
+# Si todo se ve bien, ejecutar de verdad
+./doc2md.sh --delete-converted ~/Documents/ideas
+```
+
+> **Nota:** `--delete-converted` solo elimina los archivos que fueron convertidos exitosamente **en esa misma ejecución**. No toca archivos que ya tenían `.md`, ni archivos que fallaron, ni ningún otro tipo de archivo.
+
+### Con log y resumen
+
+```bash
+./doc2md.sh \
+  -l ~/logs/doc2md.log \
+  -s ~/logs/resumen.txt \
+  -v \
+  ~/Documents/ideas
 ```
 
 ### Imágenes en JPEG de alta calidad
 
 ```bash
-doc2md -i ~/Documentos -o ~/Markdown \
-       --img-format jpg \
-       --img-quality 95
-```
-
-### Dry-run para previsualizar
-
-```bash
-doc2md -i ~/Documentos -o ~/Markdown -n -v
-```
-
-### Aplanar estructura (todo al mismo nivel)
-
-```bash
-doc2md -i ~/Documentos -o ~/Markdown --flatten
+./doc2md.sh --img-format jpg --img-quality 95 ~/Documents/ideas
 ```
 
 ### Pandoc con tabla de contenidos
 
 ```bash
-doc2md -i ~/Documentos -o ~/Markdown --pandoc-args '--toc --toc-depth=3'
+./doc2md.sh --pandoc-args '--toc --toc-depth=3' ~/Documents/ideas
 ```
 
 ---
 
-## Dependencias detalladas
+## Carpetas excluidas por defecto
+
+El script excluye automáticamente estas carpetas en cualquier nivel:
+
+```
+.git   .svn   node_modules   __pycache__   .trash   Trash   .Trash
+```
+
+Para **agregar exclusiones permanentes**, edita la sección `EXCLUDE_DIRS` al inicio del script:
+
+```bash
+declare -a EXCLUDE_DIRS=(
+    ".git"
+    ".svn"
+    "node_modules"
+    "__pycache__"
+    ".trash"
+    "Trash"
+    ".Trash"
+    "privado"          # <- agrega las tuyas aquí
+    "borradores"
+)
+```
+
+Para **desactivar todas las exclusiones por defecto** en una ejecución:
+
+```bash
+./doc2md.sh --no-default-excludes ~/Documents/ideas
+```
+
+---
+
+## Integración con tu flujo de trabajo
+
+### Alias en zsh (recomendado)
+
+Añade en `~/.zshrc`:
+
+```bash
+SCRIPTS_DIR="$HOME/Documents/scripts_for_libreoffice/script_convert_doc_to_md"
+alias doc2md="$SCRIPTS_DIR/doc2md.sh"
+
+# Atajo rápido para convertir el directorio actual
+alias doc2md-here="$SCRIPTS_DIR/doc2md.sh ."
+```
+
+### Tarea cron (cada noche a las 02:00)
+
+```bash
+crontab -e
+# Añadir:
+0 2 * * * ~/Documents/scripts_for_libreoffice/script_convert_doc_to_md/doc2md.sh -w ~/Documents/ideas -l ~/logs/doc2md.log
+```
+
+### Función zsh con exclusiones frecuentes
+
+```bash
+# En ~/.zshrc
+doc2md-ideas() {
+  ~/Documents/scripts_for_libreoffice/script_convert_doc_to_md/doc2md.sh \
+    -e "trash" -e "privado" \
+    -w \
+    "${1:-$HOME/Documents/ideas}"
+}
+```
+
+---
+
+## Estructura de salida detallada
+
+Para un archivo `index.odt` con 2 imágenes:
+
+```
+<directorio>/
+├── index.odt                    ← original intacto (o eliminado si usaste --delete-converted)
+├── index.md                     ← Markdown generado
+└── index_files/
+    └── figure-md/
+        ├── fig-001.png          ← primera imagen extraída
+        └── fig-002.png          ← segunda imagen extraída
+```
+
+Si el documento no tiene imágenes, la carpeta `index_files/` no se crea.
+
+---
+
+## Dependencias
 
 | Herramienta   | Rol                                 | Requerida      |
 | ------------- | ----------------------------------- | -------------- |
@@ -183,80 +262,28 @@ doc2md -i ~/Documentos -o ~/Markdown --pandoc-args '--toc --toc-depth=3'
 
 ---
 
-## Notas sobre formatos
-
-### DOCX / ODT
-
-Pandoc convierte directamente con excelente fidelidad. Las imágenes incrustadas se extraen automáticamente.
-
-### PPTX / ODP
-
-Pandoc soporta estas conversiones; el script intenta pandoc primero y, si falla, usa LibreOffice para pre-convertir a ODT y luego aplica pandoc. Se recomienda tener LibreOffice instalado.
-
-### Imágenes SVG
-
-Se conservan como SVG cuando pandoc las extrae en ese formato. Para convertirlas a PNG/JPG, asegúrate de tener ImageMagick instalado.
-
----
-
 ## Solución de problemas
 
-### "pandoc: Could not find image"
-
-Asegúrate de ejecutar el script con la ruta **absoluta** al directorio fuente o desde el mismo directorio.
-
-### Las presentaciones no se convierten bien
-
-Instala LibreOffice: `sudo pacman -S libreoffice-still`
-
-### Las imágenes no aparecen en el Markdown
-
-Verifica que el archivo original tenga imágenes incrustadas (no vinculadas externamente). Usa `-v` para ver el detalle del proceso.
-
-### Error "Permission denied"
+**Las presentaciones no se convierten bien**
 
 ```bash
-chmod +x doc2md.sh
+sudo pacman -S libreoffice-still
 ```
 
----
-
-## Integración con sistemas de documentación
-
-El formato de salida es compatible con:
-
-- **Quarto** — los `index.md` se pueden renombrar a `index.qmd`
-- **MkDocs** — estructura lista para `docs/`
-- **Jekyll / Hugo** — añade frontmatter con `--pandoc-args '--standalone'`
-- **Obsidian** — copia la carpeta de salida como vault
-
----
-
-## Automatización con cron / systemd
-
-### Tarea cron (cada día a las 02:00)
+**El script no tiene permisos de ejecución**
 
 ```bash
-crontab -e
-# Añadir:
-0 2 * * * /usr/local/bin/doc2md -i ~/Documentos -o ~/Markdown -w -l ~/logs/doc2md.log
+chmod +x ~/Documents/scripts_for_libreoffice/script_convert_doc_to_md/doc2md.sh
 ```
 
-### Servicio systemd (oneshot)
-
-```ini
-# ~/.config/systemd/user/doc2md.service
-[Unit]
-Description=Conversión Office a Markdown
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/doc2md -i %h/Documentos -o %h/Markdown -w
-```
+**Quiero ver exactamente qué va a hacer antes de ejecutar**
 
 ```bash
-systemctl --user enable --now doc2md.service
+./doc2md.sh -n -v ~/Documents/ideas
 ```
+
+**Un archivo genera un .md vacío o sin imágenes**
+Ejecuta con `-v` para ver el detalle. Si el documento tiene imágenes vinculadas (no incrustadas), pandoc no puede extraerlas.
 
 ---
 
