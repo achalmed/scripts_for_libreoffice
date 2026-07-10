@@ -1,111 +1,36 @@
-#  Conversor Masivo Microsoft Office → OpenDocument
+# scripts_for_libreoffice
 
-![LibreOffice](https://img.shields.io/badge/LibreOffice-7%2B-blue) ![bash](https://img.shields.io/badge/bash-4%2B-green) ![license](https://img.shields.io/github/license/edisonachalma/convert_ms_to_odf.sh)
+Repositorio de herramientas para la conversión y gestión de documentos
+Office/LibreOffice en Linux.
 
-#readme
+## docflow — suite de conversión documental
 
-Script en Bash que convierte **recursivamente** todos tus archivos de Microsoft Office (.docx, .xlsx, .pptx, etc.) a formatos abiertos **OpenDocument** (.odt, .ods, .odp, …) usando LibreOffice en modo headless.
+El proyecto principal de este repositorio es **[docflow](docflow/)**, una
+herramienta CLI profesional para la conversión masiva de documentos:
 
-Mantiene la estructura exacta de carpetas y **elimina automáticamente los archivos originales** solo cuando la conversión ha sido exitosa.
-
-Ideal para:
-
-- Migrar toda una biblioteca de documentos a formatos libres
-- Liberarte de la dependencia de Microsoft Office
-- Preparar archivos para usar con OnlyOffice, LibreOffice, Collabora, etc.
-- Hacer limpieza masiva sin miedo (¡solo borra lo que sí se convirtió bien!)
-
-## Características
-
-- Conversión 100 % recursiva
-- Soporta todos los formatos habituales de Word, Excel y PowerPoint (incluidos los antiguos .doc, .xls, .ppt)
-- Conserva la estructura de subcarpetas
-- Solo elimina el archivo original si la conversión salió perfecta
-- Colores y mensajes claros (verde = éxito, rojo = error, etc.)
-- Resumen detallado al final
-- Pregunta confirmación antes de empezar
-- Muy seguro: los archivos que fallen se quedan intactos
-
-## Requisitos
-
-- **LibreOffice** instalado (el script usa `soffice`)
-  ```bash
-  # Debian / Ubuntu / Mint
-  sudo apt update && sudo apt install libreoffice
-
-  # Fedora
-  sudo dnf install libreoffice
-
-  # Arch / Manjaro
-  sudo pacman -S libreoffice-fresh
-
-  # macOS (con Homebrew)
-  brew install --cask libreoffice
-  ```
-
-## Uso
+- **→ Markdown** (Obsidian, Logseq, MkDocs, Hugo, Quarto, GitHub): imágenes
+  extraídas y ordenadas, notas del presentador, tablas, metadatos como
+  frontmatter YAML.
+- **→ PDF** con el mejor motor disponible, más operaciones completas sobre
+  PDFs: unir, dividir, comprimir, PDF/A, cifrar, marca de agua, OCR.
+- **Office ↔ OpenDocument** bidireccional, incluidas plantillas.
 
 ```bash
-# 1. Convierte todo lo que haya en la carpeta actual
-./convert_ms_to_odf.sh
-
-# 2. Convierte una carpeta concreta
-./convert_ms_to_odf.sh "/ruta/a/mis/documentos"
-
-# 3. Ver ayuda
-./convert_ms_to_odf.sh --help
+cd docflow && ./install.sh
+docflow to-md ~/Documentos/tesis/
 ```
 
-¡Eso es todo! El script te mostrará cuántos archivos encontró, pedirá confirmación y comenzará la conversión.
+Documentación completa: [docflow/README.md](docflow/README.md) ·
+Arquitectura: [docflow/docs/ARCHITECTURE.md](docflow/docs/ARCHITECTURE.md)
 
-## Ejemplo de salida
+## Historia
 
-```
-[INFO] Directorio de trabajo: /home/yo/Documentos/ViejosOffice
-[INFO] LibreOffice encontrado: LibreOffice 7.6
-
-=== RESUMEN DE ARCHIVOS ENCONTRADOS ===
-
-Documentos de texto:
- • .docx: 145 archivo(s)
- • .doc: 23 archivo(s)
-
-Hojas de cálculo:
- • .xlsx: 67 archivo(s)
-
-Presentaciones:
- • .pptx: 12 archivo(s)
-
-[INFO] Total de archivos a procesar: 247
-
-¿Desea continuar con la conversión? (s/N): s
-
-# ... proceso con barra de progreso visual ...
-# Al final:
-
-[INFO] PROCESO COMPLETADO EXITOSAMENTE
-[INFO] Eliminados: 247 archivo(s) originales
-```
-
-## Formatos soportados
-
-
-| Tipo             | Entrada                                | Salida     |
-| ---------------- | -------------------------------------- | ---------- |
-| Documentos       | .docx, .doc, .dotx                     | .odt, .ott |
-| Hojas de cálculo | .xlsx, .xls, .xlsm, .xltx              | .ods, .ots |
-| Presentaciones   | .pptx, .ppt, .pptm, .ppsx, .pps, .potx | .odp, .otp |
-
+- **v1** (`convert_ms_to_odf.sh`, 2024): script único MS Office → ODF.
+- **v2** (`script_doc_suite`, 2025): suite modular con to-odf/to-pdf/to-md.
+- **v3** (`docflow/`, 2026): reescritura completa como herramienta
+  profesional basada en motores de conversión. Las versiones anteriores
+  están disponibles en el historial de git.
 
 ## Licencia
 
-**MIT License** – úsalo, modifícalo y distribúyelo libremente.
-
-## Autor
-
-Edison Achalma – 2024–2025  
-¡Con mucho cariño para la comunidad de software libre!
-
----
-
-**¡Dale una estrella si te ha salvado la vida migrando cientos de archivos!**
+MIT © Edison Achalma — [github.com/achalmed](https://github.com/achalmed)
