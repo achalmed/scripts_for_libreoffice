@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# docflow — Suite profesional de conversión documental para Linux.
+# Punto de entrada: resuelve la raíz del proyecto, carga el núcleo y despacha.
+#
+# Por qué NO usamos `set -e`: docflow procesa lotes grandes; el fallo de un
+# archivo individual debe registrarse y continuar, no abortar el lote entero.
+# El control de errores es explícito (códigos de retorno + session.sh).
+set -uo pipefail
+
+DOCFLOW_ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+export DOCFLOW_ROOT
+
+# shellcheck source=../lib/core/bootstrap.sh
+source "${DOCFLOW_ROOT}/lib/core/bootstrap.sh"
+
+docflow_main "$@"
