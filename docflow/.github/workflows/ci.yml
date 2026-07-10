@@ -1,0 +1,48 @@
+# CI de docflow: lint (shellcheck) + suite Bats en Ubuntu y Arch Linux.
+name: CI
+
+on:
+  push:
+    paths: ["docflow/**"]
+  pull_request:
+    paths: ["docflow/**"]
+
+jobs:
+  lint:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: shellcheck
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y shellcheck
+          shellcheck -x -S warning \
+            docflow/bin/docflow \
+            docflow/install.sh \
+            docflow/lib/core/*.sh \
+            docflow/lib/engines/*.sh \
+            docflow/lib/formats/*.sh \
+            docflow/lib/commands/*.sh
+
+  test-ubuntu:
+    name: Bats (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar dependencias
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y bats pandoc libreoffice qpdf ghostscript poppler-utils python3
+      - name: Ejecutar suite
+        run: bats docflow/tests/
+
+  test-arch:
+    name: Bats (Arch Linux)
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Instalar dependencias
+        run: pacman -Syu --noconfirm bash bash-bats pandoc-cli libreoffice-still qpdf ghostscript poppler python git
+      - uses: actions/checkout@v4
+      - name: Ejecutar suite
+        run: bats docflow/tests/
