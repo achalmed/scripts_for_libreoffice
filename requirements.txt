@@ -1,0 +1,6 @@
+# DocFlow Studio — frontend de escritorio (PySide6)
+PySide6>=6.6
+
+# Backend "Conteo de páginas" (backends/page-counter)
+pypdf>=3.0
+openpyxl>=3.0

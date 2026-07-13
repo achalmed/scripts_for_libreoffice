@@ -78,17 +78,17 @@ Verifica el estado de las dependencias en cualquier momento:
 docflow doctor
 ```
 
-| Dependencia | Rol | |
-|---|---|---|
-| pandoc | Markdown y documentos de texto | **requerida** |
-| python3 (≥3.11) | parsers OOXML, limpieza, config TOML | **requerida** |
-| libreoffice | Office↔ODF, presentaciones, hojas de cálculo | **requerida** |
-| qpdf, ghostscript | operaciones PDF, compresión, PDF/A | opcional |
-| poppler (pdftotext) | PDF → Markdown | opcional |
-| imagemagick | conversión/optimización de imágenes | opcional |
-| ocrmypdf, tesseract | OCR de PDFs escaneados | opcional |
-| inotify-tools | modo watch instantáneo | opcional |
-| texlive-xetex | pandoc → PDF de alta calidad | opcional |
+| Dependencia         | Rol                                          |               |
+| ------------------- | -------------------------------------------- | ------------- |
+| pandoc              | Markdown y documentos de texto               | **requerida** |
+| python3 (≥3.11)     | parsers OOXML, limpieza, config TOML         | **requerida** |
+| libreoffice         | Office↔ODF, presentaciones, hojas de cálculo | **requerida** |
+| qpdf, ghostscript   | operaciones PDF, compresión, PDF/A           | opcional      |
+| poppler (pdftotext) | PDF → Markdown                               | opcional      |
+| imagemagick         | conversión/optimización de imágenes          | opcional      |
+| ocrmypdf, tesseract | OCR de PDFs escaneados                       | opcional      |
+| inotify-tools       | modo watch instantáneo                       | opcional      |
+| texlive-xetex       | pandoc → PDF de alta calidad                 | opcional      |
 
 ## Uso esencial
 
@@ -111,20 +111,20 @@ Por defecto el resultado queda **junto al original** (`cap1.docx` → `cap1.md` 
 
 ## Comandos
 
-| Comando | Función |
-|---|---|
-| `to-md` | Office/ODF/PDF/EPUB/HTML → Markdown |
-| `to-pdf` | Office/ODF/Markdown/HTML/LaTeX → PDF |
-| `to-odf` | MS Office → OpenDocument |
-| `to-office` | OpenDocument (y Markdown) → MS Office |
-| `pdf <op>` | merge, split, rotate, extract, compress, pdfa, encrypt, decrypt, watermark, ocr, info |
-| `watch` | vigilar directorio y convertir al vuelo |
-| `report` | reporte de la última sesión (html/csv/json/md) |
-| `index` | índice global + árbol de documentos Markdown |
-| `doctor` | diagnóstico de dependencias con instrucciones por distro |
-| `formats` | tabla de formatos soportados |
-| `cache` | stats / clear / prune del caché de conversiones |
-| `config` | init / show / path de la configuración |
+| Comando     | Función                                                                               |
+| ----------- | ------------------------------------------------------------------------------------- |
+| `to-md`     | Office/ODF/PDF/EPUB/HTML → Markdown                                                   |
+| `to-pdf`    | Office/ODF/Markdown/HTML/LaTeX → PDF                                                  |
+| `to-odf`    | MS Office → OpenDocument                                                              |
+| `to-office` | OpenDocument (y Markdown) → MS Office                                                 |
+| `pdf <op>`  | merge, split, rotate, extract, compress, pdfa, encrypt, decrypt, watermark, ocr, info |
+| `watch`     | vigilar directorio y convertir al vuelo                                               |
+| `report`    | reporte de la última sesión (html/csv/json/md)                                        |
+| `index`     | índice global + árbol de documentos Markdown                                          |
+| `doctor`    | diagnóstico de dependencias con instrucciones por distro                              |
+| `formats`   | tabla de formatos soportados                                                          |
+| `cache`     | stats / clear / prune del caché de conversiones                                       |
+| `config`    | init / show / path de la configuración                                                |
 
 Ayuda contextual: `docflow <comando> --help`.
 
@@ -285,18 +285,18 @@ Precedencia: **CLI > config.toml > defaults**.
 
 ## Códigos de salida
 
-| Código | Significado |
-|---|---|
-| 0 | éxito |
-| 1 | error general |
-| 2 | uso incorrecto de la CLI |
-| 3 | ruta de entrada inválida |
-| 4 | no se encontraron archivos que procesar |
-| 5 | dependencia requerida ausente |
-| 6 | al menos una conversión falló |
-| 7 | verificación post-conversión fallida |
-| 8 | configuración inválida |
-| 130 | interrumpido (Ctrl-C) — usa `--resume` |
+| Código | Significado                             |
+| ------ | --------------------------------------- |
+| 0      | éxito                                   |
+| 1      | error general                           |
+| 2      | uso incorrecto de la CLI                |
+| 3      | ruta de entrada inválida                |
+| 4      | no se encontraron archivos que procesar |
+| 5      | dependencia requerida ausente           |
+| 6      | al menos una conversión falló           |
+| 7      | verificación post-conversión fallida    |
+| 8      | configuración inválida                  |
+| 130    | interrumpido (Ctrl-C) — usa `--resume`  |
 
 ## Arquitectura
 

@@ -3,9 +3,9 @@ name: CI
 
 on:
   push:
-    paths: ["docflow/**"]
+    paths: ["docflow-studio/backends/docflow/**"]
   pull_request:
-    paths: ["docflow/**"]
+    paths: ["docflow-studio/backends/docflow/**"]
 
 jobs:
   lint:
@@ -17,12 +17,12 @@ jobs:
         run: |
           sudo apt-get update -q && sudo apt-get install -y shellcheck
           shellcheck -x -S warning \
-            docflow/bin/docflow \
-            docflow/install.sh \
-            docflow/lib/core/*.sh \
-            docflow/lib/engines/*.sh \
-            docflow/lib/formats/*.sh \
-            docflow/lib/commands/*.sh
+            docflow-studio/backends/docflow/bin/docflow \
+            docflow-studio/backends/docflow/install.sh \
+            docflow-studio/backends/docflow/lib/core/*.sh \
+            docflow-studio/backends/docflow/lib/engines/*.sh \
+            docflow-studio/backends/docflow/lib/formats/*.sh \
+            docflow-studio/backends/docflow/lib/commands/*.sh
 
   test-ubuntu:
     name: Bats (Ubuntu)
@@ -34,7 +34,7 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y bats pandoc libreoffice qpdf ghostscript poppler-utils python3
       - name: Ejecutar suite
-        run: bats docflow/tests/
+        run: bats docflow-studio/backends/docflow/tests/
 
   test-arch:
     name: Bats (Arch Linux)
@@ -45,4 +45,4 @@ jobs:
         run: pacman -Syu --noconfirm bash bash-bats pandoc-cli libreoffice-still qpdf ghostscript poppler python git
       - uses: actions/checkout@v4
       - name: Ejecutar suite
-        run: bats docflow/tests/
+        run: bats docflow-studio/backends/docflow/tests/
