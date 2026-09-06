@@ -16,11 +16,15 @@ SCRIPT_VERSION = "2.0.0"
 # ---------------------------------------------------------------------------
 # Rutas de los blogs
 # ---------------------------------------------------------------------------
-# Los blogs viven como sub-repos "pub_<nombre>" directamente en ~/Documents
-# (la antigua carpeta ~/Documents/publicaciones ya no existe).
+# Raíz del workspace. Los blogs "pub_<nombre>" son submódulos git del hub
+# website-achalma y viven en RUTA_BASE_PUBLICACIONES / SUBDIR_PUBS
+# (reorganización 2026-09-06; antes colgaban directamente de ~/Documents).
 RUTA_BASE_PUBLICACIONES = Path.home() / "Documents"
 
-# Prefijo de las carpetas de blog dentro de la ruta base
+# Subcarpeta (relativa a la ruta base) que contiene los pub_*
+SUBDIR_PUBS = "website-achalma/_pubs"
+
+# Prefijo de las carpetas de blog dentro de SUBDIR_PUBS
 PREFIJO_BLOG = "pub_"
 
 # Blogs estándar (nombre lógico, sin prefijo; cada uno tiene su _site/)
