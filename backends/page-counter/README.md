@@ -1,6 +1,6 @@
 # PDF Page Counter
 
-> **Ubicación de los blogs (desde 2026-09-06):** los 11 `pub_*` son submódulos git de `website-achalma` y viven en `~/Documents/website-achalma/_pubs/pub_*`; el hub sigue en `~/Documents/website-achalma`. Las herramientas los localizan por esa subcarpeta (variable `SUBDIR_PUBS en config.py`), y aceptan el nombre de carpeta o el nombre corto sin `pub_`.
+> **Ubicación de los blogs (desde 2026-09-06):** los 11 `pub_*` son submódulos git de `website-achalma` y viven en `~/Documents/04 index/_pubs/pub_*`; el hub sigue en `~/Documents/04 index`. Las herramientas los localizan por esa subcarpeta (variable `SUBDIR_PUBS en config.py`), y aceptan el nombre de carpeta o el nombre corto sin `pub_`.
 
 > Cuenta las páginas de los PDFs renderizados por la familia de blogs Quarto
 > (`pub_*` y `website-achalma`) y genera un reporte Excel con subtotales por
@@ -31,7 +31,7 @@ páginas con `pypdf` y produce un `.xlsx` en `excel_databases/` con:
   totales).
 
 Los blogs se seleccionan por su nombre lógico (`axiomata`, `chaska`, …); la
-herramienta resuelve sola la carpeta real (`~/Documents/website-achalma/_pubs/pub_axiomata/_site`).
+herramienta resuelve sola la carpeta real (`~/Documents/04 index/_pubs/pub_axiomata/_site`).
 Las secciones de website-achalma se llaman `blog` y `teching` (o el alias
 `website-achalma` para ambas).
 
@@ -135,7 +135,7 @@ script_pdf_page_counter/
 ### Bug #1: Ruta base apuntando a una carpeta inexistente
 - **Descripción**: `RUTA_BASE_PUBLICACIONES` era
   `~/Documents/publicaciones`, una estructura que ya no existe — los blogs
-  viven como submódulos `pub_<nombre>` del hub, en `~/Documents/website-achalma/_pubs/` (`SUBDIR_PUBS` en `config.py`).
+  viven como submódulos `pub_<nombre>` del hub, en `~/Documents/04 index/_pubs/` (`SUBDIR_PUBS` en `config.py`).
 - **Impacto**: la herramienta terminaba siempre con "La ruta base no
   existe"; **ninguna** funcionalidad era utilizable.
 - **Corrección**: `config.py` apunta a `~/Documents` con prefijo `pub_`;

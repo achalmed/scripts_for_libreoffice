@@ -22,7 +22,9 @@ SCRIPT_VERSION = "2.0.0"
 RUTA_BASE_PUBLICACIONES = Path.home() / "Documents"
 
 # Subcarpeta (relativa a la ruta base) que contiene los pub_*
-SUBDIR_PUBS = "website-achalma/_pubs"
+# Carpeta del hub (repo website-achalma) desde 2026-09-06
+DIR_HUB = "04 index"
+SUBDIR_PUBS = f"{DIR_HUB}/_pubs"
 
 # Prefijo de las carpetas de blog dentro de SUBDIR_PUBS
 PREFIJO_BLOG = "pub_"
@@ -45,8 +47,8 @@ BLOGS_ESTANDAR = [
 # Blogs dentro de website-achalma (no tienen _site propio; cuelgan de
 # website-achalma/_site). Nombre lógico -> ruta relativa a la ruta base.
 BLOGS_WEBSITE_ACHALMA = {
-    "blog": "website-achalma/_site/blog",
-    "teching": "website-achalma/_site/teching",
+    "blog": f"{DIR_HUB}/_site/blog",
+    "teching": f"{DIR_HUB}/_site/teching",
 }
 
 # Alias que seleccionan todos los blogs de website-achalma a la vez
