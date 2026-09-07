@@ -31,7 +31,7 @@ WORK_DIR=""   # se inicializa en main.sh con mktemp
 LOG_DIR="${HOME}/.local/share/pdf-suite/logs"
 
 # Directorio de búsqueda de PDFs del usuario
-DOCUMENTS_DIR="${HOME}/Documents"
+DOCUMENTS_DIR="${DOCS_ROOT:-${HOME}/Documents}"   # FS2: core/env.sh lo fija si está cargado
 
 # -----------------------------------------------------------------------------
 # OPCIONES GLOBALES POR DEFECTO

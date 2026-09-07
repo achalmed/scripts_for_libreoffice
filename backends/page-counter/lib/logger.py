@@ -1,41 +1,16 @@
-"""
-lib/logger.py — Sistema de logging centralizado.
+"""scripts_document_studio/backends/page-counter/lib/logger.py — envoltorio (FS2, 2026-09-07): el logger vive en core/py-common/logger.py."""
+from __future__ import annotations
 
-Un único logger de consola para toda la aplicación; --verbose baja el
-nivel a DEBUG. Los módulos nunca hacen print() de diagnóstico directo:
-así el formato queda consistente y es fácil añadir un file handler.
+import importlib.util
+import pathlib
 
-Author : Edison Achalma (@achalmed)
-Version: 2.0.0
-"""
+_p = pathlib.Path(__file__).resolve()
+while _p != _p.parent and not (_p / "core" / "py-common" / "logger.py").exists():
+    _p = _p.parent
+_s = importlib.util.spec_from_file_location("core_logger", _p / "core" / "py-common" / "logger.py")
+_core = importlib.util.module_from_spec(_s)
+_s.loader.exec_module(_core)
 
-import logging
 
-
-def setup_logger(name: str, verbose: bool = False) -> logging.Logger:
-    """
-    Configures and returns the application logger.
-
-    The handler is attached only once so repeated calls (e.g. from
-    tests) don't duplicate output lines.
-
-    Args:
-        name: Logger name (usually the tool name).
-        verbose: When True, DEBUG messages are shown.
-
-    Returns:
-        The configured logging.Logger instance.
-    """
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
-
-    if not logger.handlers:
-        formatter = logging.Formatter(
-            "[%(levelname)s] %(asctime)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(formatter)
-        logger.addHandler(console_handler)
-
-    return logger
+def setup_logger(name, verbose=False, log_file=None):
+    return _core.configurar(name, verbose, log_file)
