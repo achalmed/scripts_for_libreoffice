@@ -1,5 +1,18 @@
 # scripts_for_libreoffice
 
+<!-- suites:inicio -->
+Suites de esta carpeta (4); índice global en `meta/INDICE_SCRIPTS.md`. Patrón: M main · C config · L lib.
+
+| Suite | Carpeta | Objetivo | Escribe en | Simula | Timer | Estado | Patrón |
+|---|---|---|---|---|---|---|---|
+| `docflow` | [scripts_document_studio/backends/docflow](backends/docflow/) | documentos | archivos | no |  | activo | `··L` |
+| `page_counter` | [scripts_document_studio/backends/page-counter](backends/page-counter/) | documentos | ninguno | sí |  | activo | `MCL` |
+| `pdf_suite` | [scripts_document_studio/backends/pdf-suite](backends/pdf-suite/) | documentos | archivos | no |  | activo | `MCL` |
+| `document_studio` | [scripts_document_studio/studio](studio/) | documentos | archivos | no |  | activo | `···` |
+
+<sub>Bloque generado desde los `suite.yml` por `core/suites.py generar` (2026-09-07); no se edita a mano.</sub>
+<!-- suites:fin -->
+
 Herramientas para la conversión y gestión de documentos Office/LibreOffice
 y PDF en Linux, unificadas en una aplicación de escritorio.
 

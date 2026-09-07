@@ -1,0 +1,12 @@
+# suite.yml — contrato de la suite (esquema en core/suite.schema.yml); core/suites.py generar escribe los índices y READMEs.
+nombre: docflow
+objetivo: documentos
+resumen: Flujos de conversión y ofimática (LibreOffice, pandoc) para documentos de trabajo; herramienta en bin/ con instalador.
+escribe_en:
+- archivos
+simula_por_defecto: false
+comandos:
+- bin/docflow --help
+- ./install.sh
+estado: activo
+nota: estructura propia (bin/, config/); candidata a main.sh + config.sh en FS3

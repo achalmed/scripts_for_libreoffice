@@ -1,5 +1,25 @@
 # pdf-suite v3.0
 
+<!-- suite:inicio -->
+**Suite `pdf_suite`** · objetivo *documentos* · estado *activo* · bash · interfaz cli
+
+Manipulación de PDF: comprimir, unir, dividir, rotar, convertir, metadatos, OCR, proteger, reparar.
+
+- Escribe en: archivos · simula por defecto: no
+- Depende de: qpdf, ghostscript, ocrmypdf, exiftool
+
+Comandos:
+
+```bash
+main.sh                      # menú
+main.sh compress <pdf>
+main.sh ocr <pdf>
+main.sh merge a.pdf b.pdf
+```
+
+<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-09-07); no se edita a mano.</sub>
+<!-- suite:fin -->
+
 > Suite completa de manipulación PDF para Linux — el equivalente a iLovePDF desde tu terminal.
 > Comprimir · Unir · Dividir · Extraer · Rotar · Convertir · OCR · Metadatos · Proteger · Reparar.
 

@@ -1,5 +1,23 @@
 # docflow
 
+<!-- suite:inicio -->
+**Suite `docflow`** · objetivo *documentos* · estado *activo* · - · interfaz cli
+
+Flujos de conversión y ofimática (LibreOffice, pandoc) para documentos de trabajo; herramienta en bin/ con instalador.
+
+- Escribe en: archivos · simula por defecto: no
+- Nota: estructura propia (bin/, config/); candidata a main.sh + config.sh en FS3
+
+Comandos:
+
+```bash
+bin/docflow --help
+./install.sh
+```
+
+<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-09-07); no se edita a mano.</sub>
+<!-- suite:fin -->
+
 > **Suite profesional de conversión documental para Linux.**
 > Convierte masivamente documentos Microsoft Office, LibreOffice/OpenDocument,
 > PDF, EPUB, HTML y LaTeX hacia **Markdown**, **PDF** y entre **Office ↔ ODF** —

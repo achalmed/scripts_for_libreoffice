@@ -1,0 +1,15 @@
+# suite.yml — contrato de la suite (esquema en core/suite.schema.yml); core/suites.py generar escribe los índices y READMEs.
+nombre: page_counter
+objetivo: documentos
+resumen: Cuenta las páginas de los index.pdf generados por cada blog (APA) y produce un reporte por blog.
+escribe_en:
+- ninguno
+simula_por_defecto: true
+comandos:
+- main.py
+- main.py --hub «04 index»
+estado: activo
+entrada: 04 index/_site y _pubs/*/_site
+depende_de:
+- python3
+- pypdf

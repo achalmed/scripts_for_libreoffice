@@ -1,0 +1,18 @@
+# suite.yml — contrato de la suite (esquema en core/suite.schema.yml); core/suites.py generar escribe los índices y READMEs.
+nombre: pdf_suite
+objetivo: documentos
+resumen: 'Manipulación de PDF: comprimir, unir, dividir, rotar, convertir, metadatos, OCR, proteger, reparar.'
+escribe_en:
+- archivos
+simula_por_defecto: false
+comandos:
+- 'main.sh                      # menú'
+- main.sh compress <pdf>
+- main.sh ocr <pdf>
+- main.sh merge a.pdf b.pdf
+estado: activo
+depende_de:
+- qpdf
+- ghostscript
+- ocrmypdf
+- exiftool
