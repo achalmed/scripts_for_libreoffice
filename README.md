@@ -1,14 +1,34 @@
 # scripts_for_libreoffice
 
+<!-- suite:inicio -->
+**Suite `document_studio`** · objetivo *documentos* · estado *activo* · python · interfaz gui
+
+Interfaz de escritorio (PySide6) sobre docflow, pdf-suite y page-counter.
+
+- Escribe en: archivos · simula por defecto: no
+- Depende de: PySide6
+- Nota: config en studio/core/settings.py (QSettings); backends docflow, pdf-suite y page-counter en backends/
+
+Comandos:
+
+```bash
+main.py
+./run.sh                 # usa el .venv si existe
+python3 -m studio
+```
+
+<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-09-07); no se edita a mano.</sub>
+<!-- suite:fin -->
+
 <!-- suites:inicio -->
 Suites de esta carpeta (4); índice global en `meta/INDICE_SCRIPTS.md`. Patrón: M main · C config · L lib.
 
 | Suite | Carpeta | Objetivo | Escribe en | Simula | Timer | Estado | Patrón |
 |---|---|---|---|---|---|---|---|
-| `docflow` | [scripts_document_studio/backends/docflow](backends/docflow/) | documentos | archivos | no |  | activo | `··L` |
+| `docflow` | [scripts_document_studio/backends/docflow](backends/docflow/) | documentos | archivos | no |  | activo | `MCL` |
 | `page_counter` | [scripts_document_studio/backends/page-counter](backends/page-counter/) | documentos | ninguno | sí |  | activo | `MCL` |
 | `pdf_suite` | [scripts_document_studio/backends/pdf-suite](backends/pdf-suite/) | documentos | archivos | no |  | activo | `MCL` |
-| `document_studio` | [scripts_document_studio/studio](studio/) | documentos | archivos | no |  | activo | `···` |
+| `document_studio` | [scripts_document_studio](./) | documentos | archivos | no |  | activo | `MCL` |
 
 <sub>Bloque generado desde los `suite.yml` por `core/suites.py generar` (2026-09-07); no se edita a mano.</sub>
 <!-- suites:fin -->

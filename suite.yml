@@ -6,10 +6,11 @@ escribe_en:
 - archivos
 simula_por_defecto: false
 comandos:
+- main.py
+- './run.sh                 # usa el .venv si existe'
 - python3 -m studio
-- ../run.sh
 estado: activo
 interfaz: gui
 depende_de:
 - PySide6
-nota: sin main.py (paquete con __main__.py); candidata a FS3
+nota: config en studio/core/settings.py (QSettings); backends docflow, pdf-suite y page-counter en backends/

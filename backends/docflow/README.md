@@ -1,18 +1,19 @@
 # docflow
 
 <!-- suite:inicio -->
-**Suite `docflow`** · objetivo *documentos* · estado *activo* · - · interfaz cli
+**Suite `docflow`** · objetivo *documentos* · estado *activo* · bash · interfaz cli
 
 Flujos de conversión y ofimática (LibreOffice, pandoc) para documentos de trabajo; herramienta en bin/ con instalador.
 
 - Escribe en: archivos · simula por defecto: no
-- Nota: estructura propia (bin/, config/); candidata a main.sh + config.sh en FS3
+- Nota: config en config/defaults.conf y lib/core/config.sh; logger propio con niveles y modo quiet (excepción documentada a core/shell-lib)
 
 Comandos:
 
 ```bash
-bin/docflow --help
-./install.sh
+main.sh --help
+main.sh convert <archivo> --to pdf
+bin/docflow …           # mismo programa
 ```
 
 <sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-09-07); no se edita a mano.</sub>

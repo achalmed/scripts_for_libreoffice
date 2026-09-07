@@ -6,7 +6,8 @@ escribe_en:
 - archivos
 simula_por_defecto: false
 comandos:
-- bin/docflow --help
-- ./install.sh
+- main.sh --help
+- main.sh convert <archivo> --to pdf
+- 'bin/docflow …           # mismo programa'
 estado: activo
-nota: estructura propia (bin/, config/); candidata a main.sh + config.sh en FS3
+nota: config en config/defaults.conf y lib/core/config.sh; logger propio con niveles y modo quiet (excepción documentada a core/shell-lib)
