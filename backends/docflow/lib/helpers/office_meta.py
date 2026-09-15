@@ -4,8 +4,9 @@
 Lee los metadatos directamente del XML del contenedor (solo stdlib):
   · OOXML (docx/xlsx/pptx…): docProps/core.xml + docProps/app.xml
   · ODF (odt/ods/odp…):      meta.xml
-Emite un bloque YAML (sin delimitadores ---) apto para frontmatter.
-Siempre emite al menos title (nombre del archivo), source y converted.
+Emite un bloque YAML (sin delimitadores ---) apto para frontmatter, con las
+claves de meta/NORMATIVA_ARCHIVOS.md §6.2 (tipo: original; snake_case en
+español). Siempre emite al menos id, tipo, titulo, estado, origen y convertido.
 """
 
 import json
@@ -35,16 +36,16 @@ def ooxml_meta(zf: zipfile.ZipFile) -> dict:
     except (KeyError, ET.ParseError):
         return meta
     fields = {
-        "title": f"{DC}title",
-        "author": f"{DC}creator",
-        "subject": f"{DC}subject",
-        "description": f"{DC}description",
-        "keywords": f"{CP}keywords",
-        "category": f"{CP}category",
-        "lang": f"{DC}language",
-        "date": f"{DCTERMS}created",
-        "modified": f"{DCTERMS}modified",
-        "last_modified_by": f"{CP}lastModifiedBy",
+        "titulo": f"{DC}title",
+        "autor": f"{DC}creator",
+        "asunto": f"{DC}subject",
+        "descripcion": f"{DC}description",
+        "palabras_clave": f"{CP}keywords",
+        "categoria": f"{CP}category",
+        "idioma": f"{DC}language",
+        "creado": f"{DCTERMS}created",
+        "modificado": f"{DCTERMS}modified",
+        "modificado_por": f"{CP}lastModifiedBy",
     }
     for key, tag in fields.items():
         value = _text(core, tag)
@@ -52,8 +53,8 @@ def ooxml_meta(zf: zipfile.ZipFile) -> dict:
             meta[key] = value
     try:
         app = ET.fromstring(zf.read("docProps/app.xml"))
-        for key, tag in {"company": f"{EP}Company", "pages": f"{EP}Pages",
-                         "words": f"{EP}Words", "slides": f"{EP}Slides"}.items():
+        for key, tag in {"organizacion": f"{EP}Company", "paginas": f"{EP}Pages",
+                         "palabras": f"{EP}Words", "laminas": f"{EP}Slides"}.items():
             value = _text(app, tag)
             if value and value != "0":
                 meta[key] = value
@@ -69,13 +70,13 @@ def odf_meta(zf: zipfile.ZipFile) -> dict:
     except (KeyError, ET.ParseError):
         return meta
     fields = {
-        "title": f"{DC}title",
-        "author": f"{META}initial-creator",
-        "subject": f"{DC}subject",
-        "description": f"{DC}description",
-        "lang": f"{DC}language",
-        "date": f"{META}creation-date",
-        "modified": f"{DC}date",
+        "titulo": f"{DC}title",
+        "autor": f"{META}initial-creator",
+        "asunto": f"{DC}subject",
+        "descripcion": f"{DC}description",
+        "idioma": f"{DC}language",
+        "creado": f"{META}creation-date",
+        "modificado": f"{DC}date",
     }
     for key, tag in fields.items():
         value = _text(root, tag)
@@ -104,17 +105,25 @@ def main() -> int:
             elif "meta.xml" in names:
                 meta = odf_meta(zf)
 
-    meta.setdefault("title", path.stem)
-    meta["source"] = path.name
-    meta["converted"] = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M")
-    meta["converter"] = "docflow"
+    ahora = datetime.now(timezone.utc).astimezone()
+    meta.setdefault("titulo", path.stem)
+    meta["id"] = ahora.strftime("%Y%m%d%H%M%S")
+    meta["tipo"] = "original"
+    meta["estado"] = "activo"
+    if meta.get("creado"):
+        meta["creado"] = str(meta["creado"])[:10]          # fecha, no instante (§3)
+    meta["origen"] = path.name
+    meta["convertidor"] = "docflow"
+    meta["convertido"] = ahora.strftime("%Y-%m-%dT%H:%M")  # instante: lo escribe una herramienta
 
-    order = ["title", "author", "subject", "description", "keywords", "category",
-             "lang", "date", "modified", "last_modified_by", "company",
-             "pages", "words", "slides", "source", "converted", "converter"]
+    order = ["id", "tipo", "titulo", "estado", "creado", "autor", "asunto", "descripcion",
+             "palabras_clave", "categoria", "idioma", "modificado", "modificado_por",
+             "organizacion", "paginas", "palabras", "laminas", "origen", "convertidor", "convertido"]
     for key in order:
         if key in meta:
             print(f"{key}: {yaml_value(str(meta[key]))}")
+    print("tags: [original]")
+    print("aliases: []")
     return 0
 
 
