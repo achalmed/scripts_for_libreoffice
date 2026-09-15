@@ -1,5 +1,6 @@
-# suite.yml — contrato de la suite (esquema en core/suite.schema.yml); core/suites.py generar escribe los índices y READMEs.
-nombre: document_studio
+# suite.yml — suite document_studio: Interfaz de escritorio (PySide6) sobre docflow, pdf-suite y page-counter.
+# Contrato: core/suite.schema.yml; core/suites.py validar lo comprueba y generar escribe los índices y README.
+id: document_studio
 objetivo: documentos
 resumen: Interfaz de escritorio (PySide6) sobre docflow, pdf-suite y page-counter.
 escribe_en:

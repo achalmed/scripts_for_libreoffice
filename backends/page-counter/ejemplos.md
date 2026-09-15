@@ -1,3 +1,8 @@
+---
+tipo: doc
+titulo: Ejemplos de uso detallados de PDF Page Counter
+estado: activo
+---
 # 📘 Ejemplos de Uso Detallados - PDF Page Counter
 
 Ejemplos prácticos y casos de uso específicos para el análisis de tus blogs académicos.

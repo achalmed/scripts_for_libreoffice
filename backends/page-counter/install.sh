@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # ============================================================================
-# PDF Page Counter - Script de Instalación
-# Autor: Edison Achalma
-# Universidad Nacional de San Cristóbal de Huamanga
+#  backends/page-counter/install.sh — PDF Page Counter - Script de Instalación
 # ============================================================================
 
 echo ""

@@ -4,9 +4,6 @@ lib/validator.py — Validación de entradas y resolución de rutas de blogs.
 Comprueba precondiciones (ruta base, nombres de blog) antes de procesar
 nada, y traduce nombres lógicos de blog ("axiomata") a rutas reales
 ("~/Documents/04 index/_pubs/pub_axiomata/_site").
-
-Author : Edison Achalma (@achalmed)
-Version: 2.0.0
 """
 
 from pathlib import Path

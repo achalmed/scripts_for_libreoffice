@@ -13,9 +13,6 @@ Flujo:
   5. Mostrar el resumen final (lib/ui.py).
 
 Este archivo solo orquesta; la lógica vive en lib/.
-
-Author : Edison Achalma (@achalmed)
-Version: 2.0.0
 """
 
 import os

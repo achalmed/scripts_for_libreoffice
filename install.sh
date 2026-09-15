@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Instalador de DocFlow Studio.
+# install.sh — Instalador de DocFlow Studio
 #
 # 1. Crea un entorno virtual local (.venv) e instala PySide6 + dependencias.
 # 2. Enlaza el lanzador en ~/.local/bin/docflow-studio.

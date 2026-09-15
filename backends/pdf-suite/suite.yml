@@ -1,5 +1,6 @@
-# suite.yml — contrato de la suite (esquema en core/suite.schema.yml); core/suites.py generar escribe los índices y READMEs.
-nombre: pdf_suite
+# backends/pdf-suite/suite.yml — suite pdf_suite: Manipulación de PDF: comprimir, unir, dividir, rotar, convertir, metadatos, OCR, proteger, reparar.
+# Contrato: core/suite.schema.yml; core/suites.py validar lo comprueba y generar escribe los índices y README.
+id: pdf_suite
 objetivo: documentos
 resumen: 'Manipulación de PDF: comprimir, unir, dividir, rotar, convertir, metadatos, OCR, proteger, reparar.'
 escribe_en:

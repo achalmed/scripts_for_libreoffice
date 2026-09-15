@@ -17,7 +17,7 @@ main.py
 python3 -m studio
 ```
 
-<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-09-07); no se edita a mano.</sub>
+<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-09-15); no se edita a mano.</sub>
 <!-- suite:fin -->
 
 <!-- suites:inicio -->
@@ -30,7 +30,7 @@ Suites de esta carpeta (4); índice global en `meta/INDICE_SCRIPTS.md`. Patrón:
 | `pdf_suite` | [scripts_document_studio/backends/pdf-suite](backends/pdf-suite/) | documentos | archivos | no |  | activo | `MCL` |
 | `document_studio` | [scripts_document_studio](./) | documentos | archivos | no |  | activo | `MCL` |
 
-<sub>Bloque generado desde los `suite.yml` por `core/suites.py generar` (2026-09-07); no se edita a mano.</sub>
+<sub>Bloque generado desde los `suite.yml` por `core/suites.py generar` (2026-09-15); no se edita a mano.</sub>
 <!-- suites:fin -->
 
 Herramientas para la conversión y gestión de documentos Office/LibreOffice

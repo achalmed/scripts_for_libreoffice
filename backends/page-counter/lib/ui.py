@@ -4,9 +4,6 @@ lib/ui.py — Presentación en terminal.
 Encabezados, secciones, listado de blogs y resumen final. Solo
 formatea: no busca PDFs ni toca el filesystem más allá de comprobar
 qué blogs existen para el listado.
-
-Author : Edison Achalma (@achalmed)
-Version: 2.0.0
 """
 
 from datetime import datetime

@@ -1,3 +1,8 @@
+---
+tipo: doc
+titulo: Arquitectura de docflow
+estado: activo
+---
 # Arquitectura de docflow
 
 Este documento explica las decisiones de diseño de docflow v3 y cómo extender

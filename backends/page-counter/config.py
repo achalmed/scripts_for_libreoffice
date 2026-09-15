@@ -3,9 +3,6 @@ config.py — Configuración centralizada de pdf_page_counter.
 
 Todas las rutas y constantes editables por el usuario viven aquí;
 los módulos de lib/ nunca llevan rutas hardcodeadas.
-
-Author : Edison Achalma (@achalmed)
-Version: 2.0.0
 """
 
 from pathlib import Path

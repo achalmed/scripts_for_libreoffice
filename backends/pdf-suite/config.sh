@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
 # config.sh — Configuración centralizada de pdf-suite
-# Autor  : Edison Achalma | UNSCH — Ayacucho, Perú
-# Versión: 3.0
 # =============================================================================
 # NOTA: Este archivo se sourcea desde main.sh y todos los módulos lib/*.sh
 # No ejecutar directamente.

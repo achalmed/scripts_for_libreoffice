@@ -4,9 +4,6 @@ lib/cli.py — Definición de la interfaz de línea de comandos.
 Centralizar el parser aquí mantiene main.py limpio y hace la CLI
 fácil de extender. Las flags son las mismas de la v1.x más
 --verbose y --version.
-
-Author : Edison Achalma (@achalmed)
-Version: 2.0.0
 """
 
 import argparse

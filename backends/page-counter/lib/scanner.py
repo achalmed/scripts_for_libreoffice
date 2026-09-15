@@ -4,9 +4,6 @@ lib/scanner.py — Búsqueda de PDFs y conteo de páginas.
 Usa pypdf (sucesor mantenido de PyPDF2) con fallback a PyPDF2 para
 entornos antiguos. Los errores de lectura se registran con su causa
 real en nivel DEBUG en vez de descartarse en silencio.
-
-Author : Edison Achalma (@achalmed)
-Version: 2.0.0
 """
 
 import logging

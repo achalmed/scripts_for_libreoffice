@@ -4,9 +4,6 @@ lib/excel_report.py — Generación del reporte Excel.
 Construye el libro con una hoja de datos (bloques por blog con
 subtotales) y una hoja de metadatos. Dividido en funciones pequeñas
 para que cada bloque visual sea testeable por separado.
-
-Author : Edison Achalma (@achalmed)
-Version: 2.0.0
 """
 
 import sys

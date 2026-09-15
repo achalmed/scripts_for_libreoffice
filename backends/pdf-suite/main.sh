@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
 # main.sh — pdf-suite: Suite completa de manipulación PDF para Linux
-# Autor  : Edison Achalma | UNSCH — Ayacucho, Perú
-# Versión: 3.0.0
-# GitHub : https://github.com/achalmed
 # =============================================================================
 # ESTRUCTURA:
 #   main.sh            ← estás aquí (orquestador)

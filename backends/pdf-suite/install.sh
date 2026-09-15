@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
 # install.sh — Instalador de pdf-suite v3.0
-# Autor: Edison Achalma | UNSCH — Ayacucho, Perú
 # =============================================================================
 # Soporta: Kubuntu, Ubuntu, Debian (apt) y Arch Linux (pacman)
 # =============================================================================
