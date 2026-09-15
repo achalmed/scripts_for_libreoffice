@@ -1,4 +1,4 @@
-"""DocFlow Studio — aplicación de escritorio unificada (PySide6).
+"""studio — DocFlow Studio, aplicación de escritorio unificada (PySide6).
 
 Frontend gráfico sobre los backends existentes del proyecto
 scripts_for_libreoffice:
