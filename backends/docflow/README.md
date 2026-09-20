@@ -130,7 +130,7 @@ docflow to-md ~/Documentos/ -n -v
 ```
 
 Por defecto el resultado queda **junto al original** (`cap1.docx` → `cap1.md` +
-`cap1_files/images/`), sin sobreescribir nada que ya exista.
+`<nombre>_files/images/`), sin sobreescribir nada que ya exista.
 
 ## Comandos
 
@@ -252,7 +252,7 @@ convertir y se reportan con estado propio (`protected`).
 ## Caché y reanudación
 
 docflow guarda un índice SHA-256 de cada conversión exitosa
-(`~/.cache/docflow/`). Un archivo sin cambios con las mismas opciones no se
+(~/.cache/docflow/). Un archivo sin cambios con las mismas opciones no se
 reconvierte, lo que hace las pasadas incrementales sobre colecciones grandes
 casi instantáneas.
 
@@ -403,7 +403,7 @@ como fallo y el lote continúa.
 - **En DocFlow Studio solo conserva PDF/A**: el resto de operaciones PDF que implementa (`docflow pdf`) se
   ejecutan desde pdf-suite (README del repo, §Deduplicación).
 - Estado fuera del repo: `~/.config/docflow/config.toml`, `~/.local/state/docflow/sessions/` (50 sesiones),
-  `~/.cache/docflow/`.
+  ~/.cache/docflow/.
 
 ---
 

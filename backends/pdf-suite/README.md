@@ -136,8 +136,8 @@ Además agrega operaciones completamente nuevas: merge, split, extract, rotate, 
 
 ```bash
 # Clonar o copiar el proyecto a su ubicación definitiva
-mkdir -p ~/Documents/scripts_for_linux/pdf-suite
-cd ~/Documents/scripts_for_linux/pdf-suite
+mkdir -p ~/Documents/scripts_document_studio/backends/pdf-suite
+cd ~/Documents/scripts_document_studio/backends/pdf-suite
 
 # Ejecutar el instalador
 chmod +x install.sh
@@ -149,7 +149,7 @@ El instalador:
 1. Detecta tu gestor de paquetes (apt / pacman)
 2. Verifica e instala dependencias obligatorias
 3. Ofrece instalar cada dependencia opcional
-4. Copia los archivos a `~/Documents/scripts_for_linux/pdf-suite/`
+4. Copia los archivos a `~/Documents/scripts_document_studio/backends/pdf-suite/`
 5. Crea el wrapper `/usr/local/bin/pdf-suite` para ejecutar desde cualquier lugar
 
 ### Opción B — Manual (Ubuntu/Kubuntu)
@@ -164,13 +164,13 @@ sudo apt update && sudo apt install -y \
   texlive-extra-utils
 
 # Permisos
-chmod +x ~/Documents/scripts_for_linux/pdf-suite/main.sh
-chmod +x ~/Documents/scripts_for_linux/pdf-suite/lib/*.sh
+chmod +x ~/Documents/scripts_document_studio/backends/pdf-suite/main.sh
+chmod +x ~/Documents/scripts_document_studio/backends/pdf-suite/lib/*.sh
 
 # Wrapper global
 sudo tee /usr/local/bin/pdf-suite > /dev/null << 'EOF'
 #!/usr/bin/env bash
-exec "${HOME}/Documents/scripts_for_linux/pdf-suite/main.sh" "$@"
+exec "${HOME}/Documents/scripts_document_studio/backends/pdf-suite/main.sh" "$@"
 EOF
 sudo chmod +x /usr/local/bin/pdf-suite
 ```
@@ -204,7 +204,7 @@ pdf-suite                     # Sin argumentos: abre menú interactivo
 | `-r, --recursive` | Procesar subdirectorios en operaciones de directorio     |
 | `-o, --output`    | Ruta explícita del archivo de salida                     |
 | `-s, --suffix`    | Sufijo para archivos de salida (default: `_out`)         |
-| `--log-file`      | Guardar log en `~/.local/share/pdf-suite/logs/`          |
+| `--log-file`      | Guardar log en ~/.local/share/pdf-suite/logs/          |
 | `--version`       | Mostrar versión                                          |
 | `-h, --help`      | Mostrar ayuda completa                                   |
 
@@ -438,7 +438,7 @@ pdf-suite deps
 ## Arquitectura
 
 ```
-~/Documents/scripts_for_linux/pdf-suite/
+~/Documents/scripts_document_studio/backends/pdf-suite/
 ├── main.sh            # Orquestador: sourcea módulos, despacha operaciones
 ├── config.sh          # Colores, rutas, defaults globales, PDF_SEARCH_PATHS
 ├── install.sh         # Instalador multiplataforma (apt / pacman)
@@ -520,7 +520,7 @@ ls -la /usr/local/bin/pdf-suite
 # Si no existe, crearlo manualmente
 sudo tee /usr/local/bin/pdf-suite > /dev/null << 'EOF'
 #!/usr/bin/env bash
-exec "${HOME}/Documents/scripts_for_linux/pdf-suite/main.sh" "$@"
+exec "${HOME}/Documents/scripts_document_studio/backends/pdf-suite/main.sh" "$@"
 EOF
 sudo chmod +x /usr/local/bin/pdf-suite
 ```
@@ -528,8 +528,8 @@ sudo chmod +x /usr/local/bin/pdf-suite
 ### "Permission denied" al ejecutar
 
 ```bash
-chmod +x ~/Documents/scripts_for_linux/pdf-suite/main.sh
-chmod +x ~/Documents/scripts_for_linux/pdf-suite/lib/*.sh
+chmod +x ~/Documents/scripts_document_studio/backends/pdf-suite/main.sh
+chmod +x ~/Documents/scripts_document_studio/backends/pdf-suite/lib/*.sh
 ```
 
 ### Error "not authorized" en ImageMagick al convertir PDF
@@ -571,7 +571,7 @@ qpdf --linearize documento_roto.pdf documento_reparado.pdf
 
 ### Agregar una nueva operación
 
-1. Crea `lib/mi_operacion.sh` con función `run_mi_operacion()` siguiendo el patrón de los módulos existentes.
+1. Crea `lib/<mi_operacion>.sh` con función `run_mi_operacion()` siguiendo el patrón de los módulos existentes.
 2. En `main.sh`, agrégalo al bloque `source`:
    ```bash
    source "${_MAIN_DIR}/lib/mi_operacion.sh"

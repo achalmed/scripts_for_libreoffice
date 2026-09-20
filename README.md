@@ -91,7 +91,7 @@ es la puerta de entrada.
 
 | carpeta | qué es | dueño / generador |
 |---|---|---|
-| `main.py` · `run.sh` · `install.sh` | entrada de la GUI (equivale a `python3 -m studio`); lanzador que usa `.venv/` si existe; instalador del frontend (venv, `~/.local/bin/docflow-studio`, `.desktop`) | a mano |
+| `main.py` · `run.sh` · `install.sh` | entrada de la GUI (equivale a `python3 -m studio`); lanzador que usa `.venv/` si existe; instalador del frontend (venv, ~/.local/bin/docflow-studio, `.desktop`) | a mano |
 | `studio/` | la aplicación PySide6: `app.py`, `core/` (rutas, QSettings, tareas), `services/` (GUI → línea de comandos exacta), `ui/` (ventana, páginas por dominio, widgets), `studio/resources/ui/main_window.ui` | a mano; `studio/README.md` |
 | `backends/docflow/` | CLI Bash de conversión documental (v3): `bin/docflow`, `lib/{core,engines,formats,commands,helpers}`, `tests/` Bats, `completions/`, `install.sh`, `LICENSE` | a mano; `backends/docflow/README.md` |
 | `backends/pdf-suite/` | CLI Bash de manipulación PDF (v3.0): `main.sh` + `config.sh` + `lib/` (10 módulos), `install.sh` | a mano; `backends/pdf-suite/README.md` |
@@ -131,8 +131,8 @@ es la puerta de entrada.
   `core/shell-lib` en su `suite.yml`; `page-counter` resuelve la raíz de los blogs con `Path.home()` en su
   `config.py`, no con `core/env.py`.
 - **Estado fuera del repo**: config TOML de docflow en `~/.config/docflow/`, sesiones y caché en
-  `~/.local/state/docflow/` y `~/.cache/docflow/` (se conservan 50 sesiones), log de la GUI en
-  `~/.local/state/docflow-studio/studio.log`, ajustes en QSettings (`~/.config/achalma/docflow-studio.conf`).
+  ~/.local/state/docflow/ y ~/.cache/docflow/ (se conservan 50 sesiones), log de la GUI en
+  ~/.local/state/docflow-studio/studio.log, ajustes en QSettings (~/.config/achalma/docflow-studio.conf).
 - **Lo que no hace**: no edita documentos (convierte, manipula, cuenta), no sincroniza con Calibre ni
   Zotero (eso es `scripts_for_calibre`), no compila LaTeX (`scripts_for_latex`).
 - Licencia MIT (`LICENSE`; docflow conserva la suya en `backends/docflow/LICENSE`).

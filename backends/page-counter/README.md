@@ -157,7 +157,7 @@ script_pdf_page_counter/
 
 ### Bug #1: Ruta base apuntando a una carpeta inexistente
 - **Descripción**: `RUTA_BASE_PUBLICACIONES` era
-  `~/Documents/publicaciones`, una estructura que ya no existe — los blogs
+  ~/Documents/publicaciones, una estructura que ya no existe — los blogs
   viven como submódulos `pub_<nombre>` del hub, en `~/Documents/04 index/_pubs/` (`SUBDIR_PUBS` en `config.py`).
 - **Impacto**: la herramienta terminaba siempre con "La ruta base no
   existe"; **ninguna** funcionalidad era utilizable.
@@ -234,7 +234,7 @@ Ejecuta con `-v` para ver la causa exacta (PDF cifrado, truncado, etc.).
 
 ## 🤝 Cómo Contribuir
 
-1. Crea el módulo en `lib/nuevo_modulo.py` con una única responsabilidad.
+1. Crea el módulo en `lib/<nuevo_modulo>.py` con una única responsabilidad.
 2. Añade sus flags en `lib/cli.py` y sus constantes en `config.py`.
 3. Impórtalo desde `main.py`; mantén `main()` como orquestador puro.
 4. Verifica con `python3 -m py_compile main.py config.py lib/*.py`.

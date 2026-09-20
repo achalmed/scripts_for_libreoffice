@@ -31,7 +31,7 @@ eso este README no lleva bloque generado. Se arranca con `../run.sh`, `python3 .
 - Panel de tareas: estado, duración y cancelación; las tareas corren en `QProcess`/`QThread` y la interfaz
   nunca se bloquea, ni en lotes de miles de archivos.
 - Visor de logs: histórico persistente en `~/.local/state/docflow-studio/studio.log` (rotado, 3 copias).
-- Configuración persistente (QSettings, `~/.config/achalma/docflow-studio.conf`): geometría, última
+- Configuración persistente (QSettings, ~/.config/achalma/docflow-studio.conf): geometría, última
   página, últimos directorios, rutas de backends.
 
 ## Estructura
