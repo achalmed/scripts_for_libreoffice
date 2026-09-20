@@ -17,7 +17,7 @@ main.sh ocr <pdf>
 main.sh merge a.pdf b.pdf
 ```
 
-<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-09-15); no se edita a mano.</sub>
+<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-09-20); no se edita a mano.</sub>
 <!-- suite:fin -->
 
 > Suite completa de manipulación PDF para Linux — el equivalente a iLovePDF desde tu terminal.
