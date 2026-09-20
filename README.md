@@ -1,4 +1,8 @@
-# scripts_for_libreoffice
+---
+tipo: readme
+estado: activo
+---
+# scripts_document_studio/ — DocFlow Studio: PDF y ofimática (repo scripts_for_libreoffice)
 
 <!-- suite:inicio -->
 **Suite `document_studio`** · objetivo *documentos* · estado *activo* · python · interfaz gui
@@ -33,165 +37,102 @@ Suites de esta carpeta (4); índice global en `meta/INDICE_SCRIPTS.md`. Patrón:
 <sub>Bloque generado desde los `suite.yml` por `core/suites.py generar` (2026-09-20); no se edita a mano.</sub>
 <!-- suites:fin -->
 
-Herramientas para la conversión y gestión de documentos Office/LibreOffice
-y PDF en Linux, unificadas en una aplicación de escritorio.
+## Qué es
 
+Una aplicación de escritorio (DocFlow Studio, PySide6) y los tres motores de línea de comandos que
+envuelve, para convertir y gestionar documentos de oficina y PDF en Linux: `docflow` (Bash; conversión
+documental masiva → Markdown, → PDF, Office ↔ ODF, con caché, paralelización, vigilancia de carpetas y
+reportes), `pdf-suite` (Bash; comprimir, unir, dividir, rotar, OCR, cifrar, marca de agua, reparar,
+metadatos) y `page-counter` (Python; cuenta las páginas de los `index.pdf` renderizados por la familia de
+blogs Quarto y produce un Excel). Resuelven lo que `pandoc` y `soffice` en un bucle no resuelven: pptx y
+xlsx que pandoc no lee, LibreOffice que corrompe su perfil al correr en paralelo, y lotes de miles de
+archivos en los que el fallo de uno no debe detener el resto.
 
+Tres nombres para una sola cosa: la carpeta es `scripts_document_studio`; el remoto en GitHub sigue
+llamándose `scripts_for_libreoffice` (los nombres de repo no cambiaron al fusionar el workspace con el
+vault, 2026-09-06); la suite raíz se llama `document_studio` y la GUI, «DocFlow Studio».
 
-# DocFlow Studio
+**No es** una biblioteca y no reescribe los backends: cada motor sigue siendo una CLI independiente, con
+su `suite.yml`, su README y su instalador (docflow, además, con tests Bats y CI); la GUI los invoca como
+procesos o, en el caso de `page-counter`, importa sus módulos tal cual. Depende de `core/` (contrato de
+suites) y de PySide6 en un `.venv/` local; no tiene `verdad` propia en `meta/workspace.yml` y no escribe
+fuera de la carpeta que se le pasa y de los directorios XDG de cada backend.
 
-> **Aplicación de escritorio unificada** (PySide6 + Qt Designer) que centraliza
-> todas las herramientas del proyecto `scripts_for_libreoffice`: conversión
-> documental, gestión de PDF, metadatos, reportes y vigilancia de carpetas.
-> 
-> Los scripts existentes **no se reescribieron**: viven en `backends/` y la
-> interfaz gráfica los invoca como motores.
-
-## Ejecutar
-
-```bash
-./install.sh        # una vez: venv + lanzador + entrada de escritorio
-docflow-studio      # o ./run.sh
-```
-
-Requisitos del frontend: Python ≥ 3.11 y PySide6 (los instala `install.sh` en
-un venv local). Las dependencias del sistema de cada backend (pandoc,
-LibreOffice, qpdf, Ghostscript, ocrmypdf…) se instalan con
-`backends/docflow/install.sh` y `backends/pdf-suite/install.sh`, y se
-diagnostican desde la propia app (**Sistema → Diagnóstico**).
-
-## Dominios funcionales
-
-La app está organizada por **dominios**, no por scripts. Cada función existe
-en un solo lugar:
-
-| Dominio                      | Qué ofrece                                                                                                                                                                                                                                                                  | Backend                    |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| **Conversión de documentos** | Office/ODF/PDF/EPUB/HTML/LaTeX → Markdown · PDF · Office↔ODF, con lotes, paralelización, caché, dry-run y backup de originales                                                                                                                                              | docflow                    |
-| **Gestión de PDF**           | Organizar (unir, dividir, extraer, rotar, reordenar, eliminar), optimizar (comprimir, comparar métodos, linearizar, reparar, validar, PDF/A), seguridad (cifrar, descifrar, marca de agua, numerar), contenido (PDF↔imagen/texto/HTML, extraer imágenes, OCR) e información | pdf-suite (PDF/A: docflow) |
-| **Metadatos**                | Ver/editar XMP y DocInfo, título desde nombre de archivo en lote, auditoría de metadatos faltantes                                                                                                                                                                          | pdf-suite                  |
-| **Reportes**                 | Reporte de la última sesión de conversión (html/md/csv/json) y conteo de páginas de los blogs Quarto con salida Excel                                                                                                                                                       | docflow + page-counter     |
-| **Vigilancia**               | Vigilar una carpeta y convertir al vuelo lo que aparezca                                                                                                                                                                                                                    | docflow watch              |
-| **Sistema**                  | Diagnóstico unificado de dependencias, caché de conversiones, config.toml de docflow, rutas de backends                                                                                                                                                                     | docflow + pdf-suite        |
-
-### Deduplicación
-
-`docflow pdf` y `pdf-suite` implementaban las mismas operaciones (merge,
-split, rotate, extract, compress, encrypt, watermark, ocr, info). En la app
-**toda la manipulación PDF pasa por pdf-suite** — que es superconjunto — y
-docflow queda como motor de *conversión documental*; la única operación PDF
-que conserva es **PDF/A**, que pdf-suite no implementa. Ninguna operación
-aparece en dos módulos.
-
-## Experiencia de usuario
-
-- **Navegación lateral** por dominios con páginas apiladas.
-- **Explorador de archivos** acoplable: doble clic o «Usar como entrada»
-  envía la ruta a la página activa. También hay *drag & drop* directo.
-- **Consola integrada**: salida en vivo (streaming) de cada tarea.
-- **Panel de tareas**: estado, duración y cancelación (las tareas corren en
-  QProcess/QThread — la interfaz **nunca se bloquea**, ni en lotes de miles
-  de archivos).
-- **Visor de logs**: histórico persistente en
-  `~/.local/state/docflow-studio/studio.log`, con filtros.
-- **Configuración persistente** (QSettings): geometría, última página,
-  últimos directorios, rutas de backends.
-
-## Arquitectura
-
-```
-docflow-studio/
-├── run.sh / install.sh        # lanzador y instalador del frontend
-├── requirements.txt
-├── backends/                   # los motores existentes, INTACTOS
-│   ├── docflow/                #   CLI Bash de conversión documental (v3)
-│   ├── pdf-suite/              #   CLI Bash de manipulación PDF (v3)
-│   └── page-counter/           #   Python: conteo de páginas Quarto (v2)
-└── studio/                     # la aplicación PySide6
-    ├── app.py  __main__.py     # arranque (logging, QApplication)
-    ├── core/                   # infraestructura transversal
-    │   ├── paths.py            #   localización de backends (+ overrides)
-    │   ├── settings.py         #   QSettings (config persistente)
-    │   └── tasks.py            #   ProcessTask/PythonTask/TaskManager
-    ├── services/               # adaptadores: GUI → línea de comandos exacta
-    │   ├── docflow.py          #   conversión, watch, report, doctor, caché, PDF/A
-    │   ├── pdfsuite.py         #   TODAS las operaciones PDF
-    │   └── pagecounter.py      #   import directo del backend Python
-    ├── ui/
-    │   ├── main_window.py      # controlador del shell (.ui) + docks
-    │   ├── widgets/            # explorador, consola, tareas, log
-    │   └── pages/              # una página por dominio funcional
-    │       ├── base.py         #   BasePage, ListaRutas, SelectorRuta
-    │       ├── conversion.py  pdf.py  metadata.py
-    │       └── reports.py  watch.py  system.py
-    └── resources/ui/main_window.ui   # shell editable con Qt Designer
-```
-
-Reglas de la arquitectura (pensadas para crecer sin tocarla):
-
-1. **Las páginas no conocen los CLIs**: construyen sus parámetros y llaman a
-   `services/`, que devuelve la línea de comandos. Un cambio de flags de un
-   backend se corrige en un solo archivo.
-2. **Los backends no se modifican**: siguen siendo utilizables desde la
-   terminal exactamente igual que antes (sus instaladores, tests y CI
-   siguen operativos).
-3. **Toda operación es una Task**: cualquier módulo nuevo hereda consola,
-   panel de tareas, log y cancelación sin escribir nada.
-4. **Añadir una operación PDF** = una entrada en `OPERACIONES`
-   (`ui/pages/pdf.py`) + una función de una línea en `services/pdfsuite.py`.
-5. **Añadir un dominio nuevo** = una página en `ui/pages/` registrada en la
-   tupla `PAGINAS` de `main_window.py`.
-
-## Editar la interfaz con Qt Designer
+## Uso
 
 ```bash
-pyside6-designer studio/resources/ui/main_window.ui
+./install.sh                                          # una vez: .venv con PySide6, lanzador ~/.local/bin/docflow-studio y entrada de escritorio
+docflow-studio                                        # o ./run.sh (usa .venv si existe), python3 main.py, python3 -m studio
+backends/docflow/install.sh                           # dependencias del sistema de docflow (pandoc, LibreOffice, qpdf, gs, ocrmypdf…)
+backends/pdf-suite/install.sh                         # ídem pdf-suite; la app las diagnostica en Sistema → Diagnóstico
+backends/docflow/bin/docflow doctor                   # qué falta y el comando exacto para tu distro
+backends/docflow/bin/docflow to-md -n -v ruta/        # simular (-n) una conversión a Markdown antes de aplicarla
+backends/docflow/bin/docflow to-md ruta/ --jobs 4 --report html   # lote en paralelo con reporte de sesión
+backends/pdf-suite/main.sh                            # menú interactivo; con operación: compress, merge, split, ocr, metadata…
+backends/pdf-suite/main.sh -n compress documento.pdf  # -n simula sin escribir
+cd backends/page-counter && python3 main.py --help    # conteo de páginas de los blogs (escribe solo su excel_databases/)
+bats backends/docflow/tests/                          # 33 tests de docflow en sandbox aislado
+pyside6-designer studio/resources/ui/main_window.ui   # editar el shell de la GUI; se carga en tiempo de ejecución
 ```
 
-El shell (menús, navegación, stack) es un `.ui` estándar; se carga en
-tiempo de ejecución con `QUiLoader`, así que los cambios de Designer se ven
-al reiniciar la app sin recompilar nada.
+Regla de oro: `-n`/`--dry-run` antes de un lote. Solo `page-counter` simula por defecto (no escribe
+fuera de su carpeta); `docflow` y `pdf-suite` escriben de verdad salvo que se les pida lo contrario.
 
----
+## Deduplicación
 
-**Licencia:** MIT © Edison Achalma — [github.com/achalmed](https://github.com/achalmed)
+`docflow pdf` y `pdf-suite` implementaban las mismas operaciones (merge, split, rotate, extract,
+compress, encrypt, watermark, ocr, info). En la app **toda la manipulación PDF pasa por pdf-suite** —que
+es superconjunto— y docflow queda como motor de *conversión documental*; la única operación PDF que
+conserva es **PDF/A**, que pdf-suite no implementa. Ninguna operación aparece en dos módulos. La
+duplicación de código sigue existiendo en los backends (ambos son CLIs completas); lo que no se duplica
+es la puerta de entrada.
 
-## DocFlow Studio — la aplicación de escritorio
+## Estructura
 
-**[docflow-studio](docflow-studio/)** (PySide6) centraliza todas las
-capacidades del proyecto en una sola interfaz organizada por dominios:
-conversión de documentos, gestión de PDF, metadatos, reportes, vigilancia
-de carpetas y diagnóstico del sistema.
+| carpeta | qué es | dueño / generador |
+|---|---|---|
+| `main.py` · `run.sh` · `install.sh` | entrada de la GUI (equivale a `python3 -m studio`); lanzador que usa `.venv/` si existe; instalador del frontend (venv, `~/.local/bin/docflow-studio`, `.desktop`) | a mano |
+| `studio/` | la aplicación PySide6: `app.py`, `core/` (rutas, QSettings, tareas), `services/` (GUI → línea de comandos exacta), `ui/` (ventana, páginas por dominio, widgets), `studio/resources/ui/main_window.ui` | a mano; `studio/README.md` |
+| `backends/docflow/` | CLI Bash de conversión documental (v3): `bin/docflow`, `lib/{core,engines,formats,commands,helpers}`, `tests/` Bats, `completions/`, `install.sh`, `LICENSE` | a mano; `backends/docflow/README.md` |
+| `backends/pdf-suite/` | CLI Bash de manipulación PDF (v3.0): `main.sh` + `config.sh` + `lib/` (10 módulos), `install.sh` | a mano; `backends/pdf-suite/README.md` |
+| `backends/page-counter/` | Python: `main.py` + `config.py` + `lib/`; `ejemplos.md`; escribe Excel en su `excel_databases/` (ignorado) | a mano; `backends/page-counter/README.md` |
+| `suite.yml` (raíz y uno por backend) | manifiesto de cada suite (`core/suite.schema.yml`) | a mano; los bloques de README los genera `core/suites.py generar --aplicar` |
+| `docs/` | documentación permanente del repo: `arquitectura.md` (principios comunes a las cuatro suites y diseño de docflow) | a mano; `docs/README.md` lo genera `core/docs.py indice` |
+| `requirements.txt` | PySide6, pypdf, openpyxl (frontend y page-counter); las dependencias del sistema las instalan los backends | a mano |
+| `.github/workflows/ci.yml` | ShellCheck + Bats de docflow en Ubuntu y Arch (se dispara solo con cambios en `backends/docflow/`) | a mano |
+| `CHANGELOG.md` · `LICENSE` | versiones con fecha ISO de las cuatro suites; MIT | a mano |
+| `.venv/` | entorno del frontend creado por `install.sh` (~660 MB; ignorado) | `install.sh` |
 
-```bash
-cd docflow-studio && ./install.sh
-docflow-studio
-```
+## Documentación
 
-Los motores viven en `docflow-studio/backends/` y **siguen siendo CLIs
-independientes**, utilizables desde la terminal como siempre:
+| documento | para qué leerlo |
+|---|---|
+| `CLAUDE.md` | reglas para el asistente: invariantes de diseño, cómo verificar, trampas |
+| `docs/arquitectura.md` | los cinco principios (errores por archivo, Bash orquesta y Python parsea…) y el diseño de docflow: registry, motores, soffice aislado, paralelización, sesiones, caché |
+| `studio/README.md` | la GUI: dominios, arquitectura por capas, reglas para añadir operaciones y dominios, Qt Designer |
+| `backends/docflow/README.md` | manual de docflow: comandos, formatos, seguridad de originales, caché, watch, hooks, códigos de salida |
+| `backends/pdf-suite/README.md` | manual de pdf-suite: operaciones, dependencias, notas y advertencias |
+| `backends/page-counter/README.md` · `backends/page-counter/ejemplos.md` | manual y casos de uso del contador de páginas |
+| `CHANGELOG.md` | qué versión tiene cada herramienta y desde cuándo |
+| `meta/INDICE_SCRIPTS.md` | las 4 suites entre las del workspace (generado) |
 
-| Backend                                               | Rol                                                                                                        | CLI               |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------- |
-| [docflow](docflow-studio/backends/docflow/)           | Conversión documental masiva (→ Markdown, → PDF, Office ↔ ODF), watch, caché, reportes                     | `docflow`         |
-| [pdf-suite](docflow-studio/backends/pdf-suite/)       | Manipulación PDF completa: comprimir, unir, dividir, rotar, OCR, cifrar, marca de agua, reparar, metadatos | `pdf-suite`       |
-| [page-counter](docflow-studio/backends/page-counter/) | Conteo de páginas de los PDFs de la familia de blogs Quarto, con reporte Excel                             | `python3 main.py` |
+## Límite honesto
 
-Documentación: [docflow-studio/README.md](docflow-studio/README.md) ·
-[docflow](docflow-studio/backends/docflow/README.md) ·
-[pdf-suite](docflow-studio/backends/pdf-suite/README.md) ·
-[page-counter](docflow-studio/backends/page-counter/README.md)
-
-## Historia
-
-- **v1** (`convert_ms_to_odf.sh`, 2024): script único MS Office → ODF.
-- **v2** (`script_doc_suite`, 2025): suite modular con to-odf/to-pdf/to-md.
-- **v3** (`docflow/`, 2026): reescritura completa como herramienta
-  profesional basada en motores de conversión.
-- **v4** (`docflow-studio/`, 2026): aplicación de escritorio unificada;
-  docflow, pdf-suite y page-counter pasan a ser sus backends. Las versiones
-  anteriores están en el historial de git.
-
-## Licencia
-
-MIT © Edison Achalma — [github.com/achalmed](https://github.com/achalmed)
+- **Solo docflow tiene pruebas** (33 tests Bats, ShellCheck y CI); `pdf-suite`, `page-counter` y la GUI se
+  comprueban a mano: `bash -n`, `py_compile`, `--dry-run` y abrir la app.
+- **La GUI no simula**: ejecuta la línea de comandos exacta que muestra en la consola; la simulación es la
+  de cada backend (`-n`). Una operación a la vez por tarea; las tareas corren en `QProcess`/`QThread` y se
+  pueden cancelar.
+- **Los originales solo los toca docflow y solo si la conversión fue exitosa y verificada** (`--backup`,
+  `--delete`); los archivos con error o protegidos por contraseña jamás se mueven ni eliminan.
+- **PDF/A vive en docflow; todo lo demás del PDF, en pdf-suite**: no hay una sola CLI para todo, y
+  `pdf-suite` sigue implementando lo que `docflow pdf` también implementa.
+- **docflow tiene logger propio** (niveles y modo `--quiet`), excepción documentada al logger de
+  `core/shell-lib` en su `suite.yml`; `page-counter` resuelve la raíz de los blogs con `Path.home()` en su
+  `config.py`, no con `core/env.py`.
+- **Estado fuera del repo**: config TOML de docflow en `~/.config/docflow/`, sesiones y caché en
+  `~/.local/state/docflow/` y `~/.cache/docflow/` (se conservan 50 sesiones), log de la GUI en
+  `~/.local/state/docflow-studio/studio.log`, ajustes en QSettings (`~/.config/achalma/docflow-studio.conf`).
+- **Lo que no hace**: no edita documentos (convierte, manipula, cuenta), no sincroniza con Calibre ni
+  Zotero (eso es `scripts_for_calibre`), no compila LaTeX (`scripts_for_latex`).
+- Licencia MIT (`LICENSE`; docflow conserva la suya en `backends/docflow/LICENSE`).

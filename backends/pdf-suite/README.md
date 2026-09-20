@@ -1,4 +1,8 @@
-# pdf-suite v3.0
+---
+tipo: readme
+estado: activo
+---
+# pdf-suite/ — manipulación de PDF: comprimir, unir, dividir, rotar, OCR, cifrar, marca de agua, reparar, metadatos (v3.0)
 
 <!-- suite:inicio -->
 **Suite `pdf_suite`** · objetivo *documentos* · estado *activo* · bash · interfaz cli
@@ -613,6 +617,18 @@ El sufijo `_out` por defecto puede cambiarse con `-s`. El script usa el sufijo t
 La operación `delete` requiere `python3` para calcular el conjunto inverso de páginas (las que se mantienen). Python3 está disponible por defecto en todas las distribuciones modernas.
 
 ---
+
+## Límite honesto
+
+- **No simula por defecto**: `-n`/`--dry-run` no escribe salidas, pero sí crea temporales en `/tmp/pdfsuite_*`
+  (se limpian al salir).
+- **El sufijo (`_out`) es también la marca de «ya procesado»**: cambiarlo con `-s` entre llamadas del mismo
+  lote rompe la prevención de bucles y reprocesa lo que ya estaba.
+- **Marca de agua y numeración dependen de `cpdf`** (AGPL, uso no comercial), que el instalador no trae;
+  `delete` necesita `python3`; sin `qpdf`, `ghostscript`, `ocrmypdf` y `exiftool` no arranca.
+- **No implementa PDF/A**: eso queda en docflow (README del repo, §Deduplicación).
+- Las `PDF_SEARCH_PATHS` de `config.sh` son sugerencias del menú interactivo; no afectan a la CLI.
+- Sin pruebas automáticas: se comprueba con `bash -n`, `-n` y sobre un PDF de prueba.
 
 ## Changelog
 

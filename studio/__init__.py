@@ -1,7 +1,7 @@
 """studio — DocFlow Studio, aplicación de escritorio unificada (PySide6).
 
 Frontend gráfico sobre los backends existentes del proyecto
-scripts_for_libreoffice:
+scripts_document_studio (repo scripts_for_libreoffice):
 
 - backends/docflow      → conversión documental (CLI Bash, se invoca por QProcess)
 - backends/pdf-suite    → manipulación PDF (CLI Bash, se invoca por QProcess)

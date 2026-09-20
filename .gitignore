@@ -3,8 +3,8 @@ estructura.txt
 __pycache__/
 *.pyc
 
-# Entorno del frontend
-docflow-studio/.venv/
+# Entorno del frontend (lo crea install.sh)
+.venv/
 
-# Reportes Excel generados por page-counter
-docflow-studio/backends/page-counter/excel_databases/
+# Reportes Excel generados por page-counter (su único producto)
+backends/page-counter/excel_databases/

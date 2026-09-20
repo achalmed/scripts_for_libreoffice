@@ -1,4 +1,8 @@
-# PDF Page Counter
+---
+tipo: readme
+estado: activo
+---
+# page-counter/ — cuenta las páginas de los index.pdf renderizados por cada blog Quarto y produce un reporte Excel (v2.0)
 
 <!-- suite:inicio -->
 **Suite `page_counter`** · objetivo *documentos* · estado *activo* · python · interfaz cli
@@ -251,6 +255,20 @@ Ejecuta con `-v` para ver la causa exacta (PDF cifrado, truncado, etc.).
   `axiomata`, no `pub_axiomata`); el prefijo es configurable en `config.py`.
 - El estado `VACÍO` (0 páginas) es raro pero posible en PDFs malformados
   que pypdf sí puede abrir.
-- `excel_databases/` local a esta herramienta no es la carpeta
-  `~/Documents/excel_databases` del pipeline de metadatos de los blogs;
+- `excel_databases/` local a esta herramienta (ignorado en git) no es el Excel de
+  metadatos de los blogs, que vive en
+  `scripts_quarto_studio/backend/script_metadata_manager/excel_databases/`;
   son almacenes distintos.
+
+## Límite honesto
+
+- **Cuenta lo renderizado, no lo escrito**: opera sobre los `index.pdf` de `_site/`; con `freeze: true` un
+  conteo viejo significa un render viejo, no un bug.
+- **No escribe fuera de su carpeta**: solo el Excel en `excel_databases/`; por eso simula por defecto en el
+  contrato de suites (`escribe_en: ninguno`).
+- **La raíz de los blogs se resuelve con `Path.home()`** en `config.py` (`DIR_HUB = "04 index"`,
+  `SUBDIR_PUBS = "04 index/_pubs"`), no con `core/env.py`: si el workspace no está en `~/Documents`, hay que
+  editar `config.py` o pasar `--hub`.
+- Los nombres lógicos de blog no llevan `pub_`; `blog` y `teching` cuelgan del `_site/` del hub y no tienen
+  `_site/` propio.
+- Sin pruebas automáticas; `pypdf` es la única dependencia externa y sin ella no arranca.

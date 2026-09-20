@@ -1,4 +1,8 @@
-# docflow
+---
+tipo: readme
+estado: activo
+---
+# docflow/ — conversión documental masiva por motores: → Markdown, → PDF, Office ↔ ODF (v3)
 
 <!-- suite:inicio -->
 **Suite `docflow`** · objetivo *documentos* · estado *activo* · bash · interfaz cli
@@ -338,7 +342,7 @@ docflow/
 │   ├── formats/            # un módulo por formato (se auto-registran)
 │   ├── commands/           # un módulo por subcomando de la CLI
 │   └── helpers/            # Python stdlib: parsers OOXML, limpieza, reportes
-├── completions/  tests/  docs/
+├── completions/  tests/
 └── install.sh
 ```
 
@@ -346,7 +350,7 @@ Cada **motor** implementa un contrato de dos funciones
 (`engine_<tarea>_output_ext`, `engine_<tarea>_convert`) y es reutilizable
 desde cualquier comando. Cada **formato** declara sus capacidades en una
 línea de registro. Detalles y decisiones de diseño en
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+[docs/arquitectura.md](../../docs/arquitectura.md) del repo (hasta 2026-09-20 vivía dentro de este backend).
 
 ### Añadir un formato nuevo
 
@@ -381,6 +385,25 @@ como fallo y el lote continúa.
 (`docflow doctor` te da el comando exacto para tu distro).
 
 **Quiero ver qué haría sin tocar nada** — `docflow to-md -n -v ruta/`.
+
+---
+
+## Límite honesto
+
+- **No usa `set -e`**: el fallo de un documento se registra y el lote continúa; el código de salida final
+  lo refleja (6 si alguna conversión falló, 7 si falló la verificación). Un lote «verde» hay que leerlo
+  en el reporte de sesión.
+- **Un original solo se toca si su conversión fue exitosa y verificada** (`--backup`, `--delete`); los
+  archivos con error, protegidos o sin convertir jamás se mueven ni eliminan.
+- **pandoc no lee pptx ni xlsx**: los parsers OOXML propios cubren texto, tablas, imágenes y notas del
+  presentador, no animaciones ni macros; `soffice` devuelve 0 aunque no convierta (protegidos) y por eso
+  se comprueba que la salida exista, con timeout de 300 s por archivo.
+- **Logger propio** con niveles y `--quiet`, excepción documentada al logger de `core/shell-lib` en
+  `suite.yml`; toda salida al usuario va a stderr y stdout queda para datos (`--json`).
+- **En DocFlow Studio solo conserva PDF/A**: el resto de operaciones PDF que implementa (`docflow pdf`) se
+  ejecutan desde pdf-suite (README del repo, §Deduplicación).
+- Estado fuera del repo: `~/.config/docflow/config.toml`, `~/.local/state/docflow/sessions/` (50 sesiones),
+  `~/.cache/docflow/`.
 
 ---
 

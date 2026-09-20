@@ -1,20 +1,22 @@
 ---
 tipo: doc
-titulo: Arquitectura de docflow
+titulo: Arquitectura de docflow y principios comunes a las cuatro suites
 estado: activo
 ---
-# Arquitectura de docflow
+# Arquitectura de docflow y principios comunes a las cuatro suites
 
-Este documento explica las decisiones de diseño de docflow v3 y cómo extender
-el sistema. Léelo antes de modificar el núcleo.
+Este documento explica las decisiones de diseño de docflow v3 y cómo extender el sistema. Léelo antes
+de modificar el núcleo. Sus **Principios** son los de las cuatro suites del repo (`document_studio`,
+`docflow`, `page_counter`, `pdf_suite`); el resto describe docflow y sus rutas son relativas a
+`backends/docflow/`. Hasta 2026-09-20 (DOC6) vivía dentro de ese backend.
 
 ## Principios
 
 1. **Responsabilidad única por módulo.** Ningún archivo mezcla parsing de CLI
    con lógica de conversión, ni logging con estado de sesión.
 2. **El núcleo no conoce formatos.** Los formatos se declaran en
-   `lib/formats/` y los motores los consultan a través del registry.
-   Añadir un formato jamás toca `lib/core/`.
+   `backends/docflow/lib/formats/` y los motores los consultan a través del registry.
+   Añadir un formato jamás toca `backends/docflow/lib/core/`.
 3. **Errores por archivo, nunca por lote.** No se usa `set -e`: el fallo de
    un documento se registra y el lote continúa. El código de salida final
    refleja si hubo fallos (6) o no (0).
@@ -23,7 +25,7 @@ el sistema. Léelo antes de modificar el núcleo.
    Validation Engine.
 5. **Bash para orquestar, Python (stdlib) para parsear.** Bash coordina
    procesos y archivos; todo lo que requiere parsing estructurado (XML OOXML,
-   TOML, Markdown, JSON) vive en `lib/helpers/*.py` sin dependencias externas.
+   TOML, Markdown, JSON) vive en `backends/docflow/lib/helpers/*.py` sin dependencias externas.
 
 ## Capas
 
@@ -36,7 +38,7 @@ bin/docflow
        └─ lib/commands/cmd_*.sh   un archivo por subcomando
 ```
 
-### El registry (`lib/core/registry.sh`)
+### El registry (`backends/docflow/lib/core/registry.sh`)
 
 Cada formato declara una línea:
 
@@ -71,11 +73,11 @@ contrato y gana todas esas capacidades gratis.
 |---|---|---|
 | `pandoc` | docx, odt, rtf, epub, html, tex | pandoc directo con `--extract-media` |
 | `via_docx` | doc, dot, dotx, fodt, ott | soffice → docx → pandoc |
-| `pptx_parser` | pptx, pptm, ppsx, potx | `helpers/pptx_to_md.py` (OOXML directo) |
+| `pptx_parser` | pptx, pptm, ppsx, potx | `backends/docflow/lib/helpers/pptx_to_md.py` (OOXML directo) |
 | `via_pptx` | ppt, pps, pot, odp, fodp, otp | soffice → pptx → parser |
-| `xlsx_parser` | xlsx, xlsm, xltx | `helpers/xlsx_to_md.py` (OOXML directo) |
+| `xlsx_parser` | xlsx, xlsm, xltx | `backends/docflow/lib/helpers/xlsx_to_md.py` (OOXML directo) |
 | `via_xlsx` | xls, ods, fods, ots | soffice → xlsx → parser |
-| `csv_parser` | csv, tsv | `helpers/xlsx_to_md.py --csv` |
+| `csv_parser` | csv, tsv | `backends/docflow/lib/helpers/xlsx_to_md.py --csv` |
 | `pdf_text` | pdf | (ocrmypdf →) pdftotext |
 
 **Por qué parsers propios:** pandoc no tiene lectores para pptx/xlsx. La
@@ -88,7 +90,7 @@ zip+XML documentado: parsearlos con `xml.etree` es más fiel y sin dependencias.
 (`mdtools.py fix-media`), procesamiento de imágenes (Media Engine), limpieza
 conservadora (`mdtools.py clean`) y frontmatter YAML (Metadata Engine).
 
-### LibreOffice headless (`lib/core/soffice.sh`)
+### LibreOffice headless (`backends/docflow/lib/core/soffice.sh`)
 
 Dos problemas conocidos de `soffice --convert-to` en automatización:
 
@@ -100,7 +102,7 @@ Dos problemas conocidos de `soffice --convert-to` en automatización:
    esperado realmente existe (soffice devuelve 0 aunque no convierta, p. ej.
    con documentos protegidos).
 
-### Paralelización (`lib/core/parallel.sh`)
+### Paralelización (`backends/docflow/lib/core/parallel.sh`)
 
 En lugar del frágil `export -f` de funciones a subshells, cada worker
 re-invoca `docflow __worker <tarea> <archivo>`: un subcomando interno que
@@ -117,7 +119,7 @@ de progreso monitorizando ese archivo.
 - `report.py` genera HTML/CSV/JSON/MD desde ese TSV; `--json` lo emite crudo.
 - Se conservan las últimas 50 sesiones.
 
-### Caché (`lib/core/cache.sh`)
+### Caché (`backends/docflow/lib/core/cache.sh`)
 
 Clave = `sha256(contenido) + tarea + opciones relevantes` (flavor, formato de
 imagen, motor PDF). Valor = ruta de salida. Hit solo si la salida registrada
@@ -126,11 +128,11 @@ entrada gana); `docflow cache prune` lo compacta.
 
 ## Cómo extender
 
-**Formato nuevo:** un archivo en `lib/formats/` con `registry_add`. Si
+**Formato nuevo:** un archivo en `backends/docflow/lib/formats/` con `registry_add`. Si
 necesita una estrategia nueva, añádela al `case` del motor correspondiente
 y documenta aquí.
 
-**Comando nuevo:** `lib/commands/cmd_<nombre>.sh` con una función
+**Comando nuevo:** `backends/docflow/lib/commands/cmd_<nombre>.sh` con una función
 `cmd_<nombre>()` (y opcionalmente `cli_help_<nombre>()`). El bootstrap lo
 descubre por convención de nombres; no hay lista central que mantener.
 
@@ -138,8 +140,8 @@ descubre por convención de nombres; no hay lista central que mantener.
 `_dispatch_exts_for_task`. Todo lo transversal es gratis.
 
 **Opción de configuración nueva:** valor por defecto en
-`config/defaults.conf`, mapeo TOML en `KEYMAP` de `lib/core/config.sh`,
-flag en `lib/core/cli.sh` y plantilla en `config_write_template`.
+`backends/docflow/config/defaults.conf`, mapeo TOML en `KEYMAP` de `backends/docflow/lib/core/config.sh`,
+flag en `backends/docflow/lib/core/cli.sh` y plantilla en `config_write_template`.
 
 ## Convenciones
 

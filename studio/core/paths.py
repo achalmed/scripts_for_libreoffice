@@ -1,7 +1,7 @@
 """Resolución de rutas del proyecto y de los backends.
 
 Única fuente de verdad para localizar los ejecutables de backend.
-Los backends viven bajo docflow-studio/backends/; el usuario puede
+Los backends viven bajo backends/ de la raíz del repo; el usuario puede
 sobreescribir cada ruta desde Sistema → Ajustes (persisten en QSettings).
 """
 
@@ -11,7 +11,7 @@ import os
 import shutil
 from pathlib import Path
 
-# docflow-studio/ (raíz del proyecto, dos niveles sobre este archivo)
+# raíz del repo (dos niveles sobre este archivo)
 STUDIO_ROOT = Path(__file__).resolve().parents[2]
 BACKENDS_DIR = STUDIO_ROOT / "backends"
 

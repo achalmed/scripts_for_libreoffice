@@ -1,0 +1,105 @@
+---
+tipo: guia_ia
+estado: activo
+---
+# CLAUDE.md — scripts_document_studio (repo `scripts_for_libreoffice`, suite `document_studio`)
+
+Guía para el asistente. En español, como todo el ecosistema. `AGENTS.md` es un enlace a este archivo.
+Léase antes: `README.md` (qué es, uso, deduplicación), `docs/arquitectura.md` (los principios), `suite.yml`
+(raíz y uno por backend), `studio/README.md` (la GUI) y el README del backend que se toque.
+
+## Reglas que no se negocian
+
+- **Una GUI que orquesta tres backends intactos.** `docflow` y `pdf-suite` se invocan como procesos
+  (`QProcess`, línea de comandos construida en `studio/services/`); `page-counter` se importa como módulo
+  (`studio/services/pagecounter.py`). Los backends siguen siendo CLIs completas desde la terminal: sus
+  instaladores, tests y CI no dependen de la GUI. La GUI no importa código Bash ni reescribe backends.
+- **Los ejecutables de backend se resuelven en un solo sitio**, `studio/core/paths.py` (con override del
+  usuario en QSettings). Si un backend se mueve, se toca solo ese archivo.
+- **Las páginas no conocen los CLIs**: construyen parámetros y llaman a `studio/services/`, que devuelve el
+  comando. Un cambio de flags de un backend se corrige en un archivo. Toda operación es una `Task`
+  (`studio/core/tasks.py`) y hereda consola, panel, log y cancelación.
+- **Deduplicación deliberada** (README §Deduplicación): en la app toda operación PDF pasa por `pdf-suite`;
+  `docflow` es solo conversión documental más **PDF/A**. Ninguna operación aparece en dos módulos: añadir
+  una operación PDF es una entrada en `OPERACIONES` de `studio/ui/pages/pdf.py` y una función de una línea
+  en `studio/services/pdfsuite.py`; añadir un dominio es una página en `studio/ui/pages/` registrada en
+  `PAGINAS` de `studio/ui/main_window.py`.
+- **Errores por archivo, nunca por lote** (`docs/arquitectura.md` §Principios): docflow no usa `set -e`;
+  el fallo de un documento se registra y el lote sigue; el código de salida final lo refleja (6). Un
+  original solo se respalda o elimina si la conversión fue exitosa **y** verificada.
+- **Bash orquesta, Python stdlib parsea.** Bash coordina procesos y archivos; todo parsing estructurado
+  (OOXML, TOML, Markdown, JSON) vive en `backends/docflow/lib/helpers/*.py` sin dependencias externas. El
+  núcleo de docflow no conoce formatos: se declaran en `backends/docflow/lib/formats/` con `registry_add`.
+- **Instalación en dos niveles**: `install.sh` crea `.venv/` con `requirements.txt` (PySide6, pypdf,
+  openpyxl) y el lanzador `docflow-studio`; las dependencias del sistema (pandoc, LibreOffice, qpdf, gs,
+  ocrmypdf, exiftool…) las instalan `backends/docflow/install.sh` y `backends/pdf-suite/install.sh`.
+  `run.sh` usa `.venv/` si existe y el `python3` del sistema si no. Un solo camino documentado.
+- **Simular antes de aplicar**: `-n`/`--dry-run` en docflow y pdf-suite; la GUI no simula por sí misma.
+- **Lo generado no se edita**: los bloques `<!-- suite:inicio -->` y `<!-- suites:inicio -->` de los README
+  salen de los `suite.yml` con `core/suites.py generar --aplicar`; `docs/README.md`, con
+  `core/docs.py indice`. `studio/README.md` no lleva bloque: la suite `document_studio` se declara en el
+  `suite.yml` de la raíz.
+- **Raíz y logger de `core/`**: ninguna ruta de máquina en código. Excepciones declaradas: docflow tiene
+  logger propio (nota en su `suite.yml`); `page-counter` resuelve `~/Documents` con `Path.home()` en su
+  `config.py` (pendiente de pasar a `core/env.py`, 2026-09-20).
+- **Español con tildes** en código, mensajes, comentarios y docs; nada del despacho en este repo.
+
+## Cómo se verifica un cambio
+
+```bash
+python3 core/archivos.py validar scripts_document_studio     # A01–A14 y D01–D12, desde ~/Documents
+python3 core/suites.py validar                                # los 4 suite.yml contra el esquema
+python3 core/suites.py generar                                # ¿bloques de README desfasados? (simula)
+python3 core/docs.py verificar scripts_document_studio        # índice de docs/ al día
+cd scripts_document_studio
+bash -n backends/docflow/bin/docflow backends/pdf-suite/main.sh
+shellcheck -x -S warning backends/docflow/bin/docflow backends/docflow/lib/*/*.sh  # lo del CI
+bats backends/docflow/tests/                                  # 33 tests en sandbox (pandoc, soffice, qpdf)
+python3 -m py_compile main.py studio/**/*.py backends/page-counter/*.py backends/page-counter/lib/*.py
+backends/docflow/bin/docflow to-md -n -v ruta/                # simular
+backends/pdf-suite/main.sh -n compress documento.pdf           # simular
+./run.sh                                                      # abrir la GUI y mirar la consola integrada
+meta/doctor/main.sh --breve                                   # desde ~/Documents
+```
+
+Solo docflow tiene pruebas automáticas; un cambio en la GUI se prueba abriéndola y leyendo la consola
+integrada (comando exacto, stdout, stderr, código de salida y duración) y el log en
+`~/.local/state/docflow-studio/studio.log`.
+
+## Detalles que cuesta redescubrir
+
+- **El CI se dispara solo con cambios en `backends/docflow/`** (`.github/workflows/ci.yml`, `paths`). Hasta
+  DOC6 (2026-09-20) sus rutas empezaban por `docflow-studio/`, el nombre de la carpeta antes de que el
+  repo entero fuese la app: no se ejecutaba nunca. Lo mismo pasaba con `.gitignore`.
+- **`page-counter` localiza los blogs con `DIR_HUB = "04 index"` y `SUBDIR_PUBS = "04 index/_pubs"`** en
+  `backends/page-counter/config.py` (desde 2026-09-06 los `pub_*` son submódulos del hub); los nombres
+  lógicos no llevan `pub_`; `blog` y `teching` cuelgan del `_site/` del hub. Cuenta lo **renderizado**:
+  con `freeze: true` un conteo viejo significa un render viejo. Su `excel_databases/` es local e ignorado;
+  no es el Excel de metadatos de `scripts_quarto_studio`.
+- **soffice devuelve 0 aunque no convierta** (documentos protegidos) y corrompe su perfil si corre en
+  paralelo: docflow aísla cada invocación en un perfil temporal, le pone `timeout` (300 s,
+  `DOCFLOW_SOFFICE_TIMEOUT`) y comprueba que el archivo esperado exista (`lib/core/soffice.sh`).
+- **Paralelización sin `export -f`**: cada worker re-invoca `docflow __worker <tarea> <archivo>`; la
+  configuración viaja en variables `DOCFLOW_*` y los resultados convergen en el `results.tsv` de la sesión
+  (`~/.local/state/docflow/sessions/<ts>/`; se conservan 50).
+- **La caché de docflow** (`~/.cache/docflow/`) se indexa por `sha256(contenido) + tarea + opciones`;
+  `docflow cache prune` la compacta. `--resume` reanuda un lote interrumpido (código 130).
+- **pdf-suite usa el sufijo (`_out`) para no reprocesar lo ya procesado**: cambiarlo entre llamadas del
+  mismo lote rompe esa prevención de bucles. `delete` necesita `python3`; `watermark`/numeración
+  necesitan `cpdf` (AGPL, se instala aparte); `--dry-run` sí crea temporales en `/tmp/pdfsuite_*`.
+- **El shell de la GUI es un `.ui`** cargado con `QUiLoader`: los cambios de Qt Designer se ven al
+  reiniciar sin recompilar. Ajustes en QSettings (`~/.config/achalma/docflow-studio.conf`).
+
+## Dónde está cada cosa
+
+| pregunta | documento |
+|---|---|
+| principios comunes, registry, motores, sesiones, caché, extender docflow | `docs/arquitectura.md` |
+| dominios de la GUI, capas, cómo añadir una operación o un dominio, Qt Designer | `studio/README.md` |
+| comandos, formatos, originales, hooks, códigos de salida de docflow | `backends/docflow/README.md` |
+| operaciones, dependencias, bugs corregidos y advertencias de pdf-suite | `backends/pdf-suite/README.md` |
+| opciones, blogs y advertencias del contador de páginas | `backends/page-counter/README.md` |
+| casos de uso del contador de páginas | `backends/page-counter/ejemplos.md` |
+| qué se fusionó y por qué; versiones y fechas | `README.md` §Deduplicación, `CHANGELOG.md` |
+| el contrato de suite y los bloques generados | `core/suite.schema.yml`, `core/README.md` |
+| normativa de archivos, fechas, cabeceras y documentación | `meta/NORMATIVA_ARCHIVOS.md` |
