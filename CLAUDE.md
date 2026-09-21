@@ -78,17 +78,17 @@ integrada (comando exacto, stdout, stderr, código de salida y duración) y el l
   no es el Excel de metadatos de `scripts_quarto_studio`.
 - **soffice devuelve 0 aunque no convierta** (documentos protegidos) y corrompe su perfil si corre en
   paralelo: docflow aísla cada invocación en un perfil temporal, le pone `timeout` (300 s,
-  `DOCFLOW_SOFFICE_TIMEOUT`) y comprueba que el archivo esperado exista (`lib/core/soffice.sh`).
+  `DOCFLOW_SOFFICE_TIMEOUT`) y comprueba que el archivo esperado exista (`backends/docflow/lib/core/soffice.sh`).
 - **Paralelización sin `export -f`**: cada worker re-invoca `docflow __worker <tarea> <archivo>`; la
   configuración viaja en variables `DOCFLOW_*` y los resultados convergen en el `results.tsv` de la sesión
   (`~/.local/state/docflow/sessions/<ts>/`; se conservan 50).
-- **La caché de docflow** (`~/.cache/docflow/`) se indexa por `sha256(contenido) + tarea + opciones`;
+- **La caché de docflow** (~/.cache/docflow/) se indexa por `sha256(contenido) + tarea + opciones`;
   `docflow cache prune` la compacta. `--resume` reanuda un lote interrumpido (código 130).
 - **pdf-suite usa el sufijo (`_out`) para no reprocesar lo ya procesado**: cambiarlo entre llamadas del
   mismo lote rompe esa prevención de bucles. `delete` necesita `python3`; `watermark`/numeración
   necesitan `cpdf` (AGPL, se instala aparte); `--dry-run` sí crea temporales en `/tmp/pdfsuite_*`.
 - **El shell de la GUI es un `.ui`** cargado con `QUiLoader`: los cambios de Qt Designer se ven al
-  reiniciar sin recompilar. Ajustes en QSettings (`~/.config/achalma/docflow-studio.conf`).
+  reiniciar sin recompilar. Ajustes en QSettings (~/.config/achalma/docflow-studio.conf).
 
 ## Dónde está cada cosa
 

@@ -12,7 +12,7 @@ viven junto a ella (`../backends/*/README.md`, `../studio/README.md`). Índice g
 | documento | tipo | estado | qué es |
 |---|---|---|---|
 | [arquitectura.md](arquitectura.md) | `doc` | `activo` | Arquitectura de docflow y principios comunes a las cuatro suites |
-| [vision.md](vision.md) | `doc` | `hecho` | Visión de producto — DocFlow Studio (2026-07-13) |
+| [vision.md](vision.md) | `plan` | `hecho` | Visión de producto — DocFlow Studio (2026-07-13) |
 
 <sub>Bloque generado por `core/docs.py indice` desde el frontmatter de docs/ (2026-09-20); no se edita a mano.</sub>
 <!-- docs:fin -->
