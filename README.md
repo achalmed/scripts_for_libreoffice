@@ -21,7 +21,7 @@ main.py
 python3 -m studio
 ```
 
-<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-09-20); no se edita a mano.</sub>
+<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-10-04); no se edita a mano.</sub>
 <!-- suite:fin -->
 
 <!-- suites:inicio -->
@@ -30,11 +30,11 @@ Suites de esta carpeta (4); índice global en `meta/INDICE_SCRIPTS.md`. Patrón:
 | Suite | Carpeta | Objetivo | Escribe en | Simula | Timer | Estado | Patrón |
 |---|---|---|---|---|---|---|---|
 | `docflow` | [scripts_document_studio/backends/docflow](backends/docflow/) | documentos | archivos | no |  | activo | `MCL` |
-| `page_counter` | [scripts_document_studio/backends/page-counter](backends/page-counter/) | documentos | ninguno | sí |  | activo | `MCL` |
+| `page_counter` | [scripts_document_studio/backends/page-counter](backends/page-counter/) | documentos | archivos | no |  | activo | `MCL` |
 | `pdf_suite` | [scripts_document_studio/backends/pdf-suite](backends/pdf-suite/) | documentos | archivos | no |  | activo | `MCL` |
 | `document_studio` | [scripts_document_studio](./) | documentos | archivos | no |  | activo | `MCL` |
 
-<sub>Bloque generado desde los `suite.yml` por `core/suites.py generar` (2026-09-20); no se edita a mano.</sub>
+<sub>Bloque generado desde los `suite.yml` por `core/suites.py generar` (2026-10-04); no se edita a mano.</sub>
 <!-- suites:fin -->
 
 ## Qué es

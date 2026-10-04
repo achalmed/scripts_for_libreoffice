@@ -4,13 +4,14 @@ id: page_counter
 objetivo: documentos
 resumen: Cuenta las páginas de los index.pdf generados por cada blog (APA) y produce un reporte por blog.
 escribe_en:
-- ninguno
-simula_por_defecto: true
+- archivos
+simula_por_defecto: false
 comandos:
 - main.py
-- main.py --hub «04 index»
+- main.py -b <blog> [<blog> ...]
 estado: activo
 entrada: 04 index/_site y _pubs/*/_site
 depende_de:
 - python3
 - pypdf
+nota: cada corrida escribe su reporte Excel en excel_databases/ de la propia suite (-o le da nombre); no escribe fuera de su carpeta.

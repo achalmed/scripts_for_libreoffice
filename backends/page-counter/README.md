@@ -9,18 +9,19 @@ estado: activo
 
 Cuenta las páginas de los index.pdf generados por cada blog (APA) y produce un reporte por blog.
 
-- Escribe en: ninguno · simula por defecto: sí
+- Escribe en: archivos · simula por defecto: no
 - Entrada: 04 index/_site y _pubs/*/_site
 - Depende de: python3, pypdf
+- Nota: cada corrida escribe su reporte Excel en excel_databases/ de la propia suite (-o le da nombre); no escribe fuera de su carpeta.
 
 Comandos:
 
 ```bash
 main.py
-main.py --hub «04 index»
+main.py -b <blog> [<blog> ...]
 ```
 
-<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-09-20); no se edita a mano.</sub>
+<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-10-04); no se edita a mano.</sub>
 <!-- suite:fin -->
 
 ## Qué es

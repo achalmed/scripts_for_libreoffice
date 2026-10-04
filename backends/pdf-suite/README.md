@@ -10,7 +10,8 @@ estado: activo
 Manipulación de PDF: comprimir, unir, dividir, rotar, convertir, metadatos, OCR, proteger, reparar.
 
 - Escribe en: archivos · simula por defecto: no
-- Depende de: qpdf, ghostscript, ocrmypdf, exiftool
+- Depende de: gs, qpdf, pdfinfo
+- Nota: gs, qpdf y pdfinfo son obligatorios (lib/validator.sh); pdftk, ocrmypdf, tesseract, exiftool, img2pdf y otros se exigen solo en la operación que los usa.
 
 Comandos:
 
@@ -21,7 +22,7 @@ main.sh ocr <pdf>
 main.sh merge a.pdf b.pdf
 ```
 
-<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-09-20); no se edita a mano.</sub>
+<sub>Bloque generado desde `suite.yml` por `core/suites.py generar` (2026-10-04); no se edita a mano.</sub>
 <!-- suite:fin -->
 
 ## Qué es

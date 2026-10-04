@@ -13,7 +13,7 @@ comandos:
 - main.sh merge a.pdf b.pdf
 estado: activo
 depende_de:
+- gs
 - qpdf
-- ghostscript
-- ocrmypdf
-- exiftool
+- pdfinfo
+nota: gs, qpdf y pdfinfo son obligatorios (lib/validator.sh); pdftk, ocrmypdf, tesseract, exiftool, img2pdf y otros se exigen solo en la operación que los usa.

@@ -8,7 +8,7 @@ escribe_en:
 simula_por_defecto: false
 comandos:
 - main.sh --help
-- main.sh convert <archivo> --to pdf
+- main.sh to-pdf <archivo>
 - 'bin/docflow …           # mismo programa'
 estado: activo
 nota: config en config/defaults.conf y lib/core/config.sh; logger propio con niveles y modo quiet (excepción documentada a core/shell-lib)
