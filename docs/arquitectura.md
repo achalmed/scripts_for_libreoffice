@@ -8,7 +8,8 @@ estado: activo
 Este documento explica las decisiones de diseño de docflow v3 y cómo extender el sistema. Léelo antes
 de modificar el núcleo. Sus **Principios** son los de las cuatro suites del repo (`document_studio`,
 `docflow`, `page_counter`, `pdf_suite`); el resto describe docflow y sus rutas son relativas a
-`backends/docflow/`. Hasta 2026-09-20 (DOC6) vivía dentro de ese backend.
+`backends/docflow/`, salvo las dos secciones finales de «Cómo extender», que tratan pdf-suite y
+page-counter. Cómo se extiende la GUI está en `studio/README.md` §Reglas de la arquitectura.
 
 ## Principios
 
@@ -128,6 +129,8 @@ entrada gana); `docflow cache prune` lo compacta.
 
 ## Cómo extender
 
+### docflow
+
 **Formato nuevo:** un archivo en `backends/docflow/lib/formats/` con `registry_add`. Si
 necesita una estrategia nueva, añádela al `case` del motor correspondiente
 y documenta aquí.
@@ -139,11 +142,37 @@ descubre por convención de nombres; no hay lista central que mantener.
 **Motor nuevo:** implementa el contrato de dos funciones y añade la tarea a
 `_dispatch_exts_for_task`. Todo lo transversal es gratis.
 
-**Opción de configuración nueva:** valor por defecto en
+**Opción de configuración nueva (docflow):** valor por defecto en
 `backends/docflow/config/defaults.conf`, mapeo TOML en `KEYMAP` de `backends/docflow/lib/core/config.sh`,
 flag en `backends/docflow/lib/core/cli.sh` y plantilla en `config_write_template`.
 
-## Convenciones
+### pdf-suite
+
+Una operación nueva (`backends/pdf-suite/`):
+
+1. `lib/<operacion>.sh` con una función `run_<operacion>()` que siga el patrón de los módulos existentes:
+   parsea sus flags, pide por el menú lo que falte y valida con `validate_pdf_file` y
+   `validate_output_path` antes de escribir.
+2. En `main.sh`, cargarlo con `source "${_MAIN_DIR}/lib/<operacion>.sh"` y añadir la rama al
+   `case "$operation"` de `main()`.
+3. En `backends/pdf-suite/lib/cli.sh`, la opción del menú en `show_interactive_menu()` y la línea de `show_help`.
+4. La entrada en `docs/referencia-pdf-suite.md` y, si la app debe ofrecerla, en `OPERACIONES` de
+   `studio/ui/pages/pdf.py` con su función en `studio/services/pdfsuite.py`.
+
+Convenciones del backend: funciones `verbo_sustantivo()` cortas que comentan el porqué; toda salida
+visible pasa por `log_success`, `log_failure` o `log_skip`; se prueban los casos de error (archivo
+inexistente, sin permisos, PDF corrupto).
+
+### page-counter
+
+Un módulo nuevo (`backends/page-counter/`) va a `lib/<modulo>.py` con una sola responsabilidad; sus flags
+en `backends/page-counter/lib/cli.py` y sus constantes en `config.py` (única fuente de rutas y constantes); `main.py` lo importa
+y sigue siendo un orquestador puro (validar → escanear → reportar → resumen). Nada de
+`except Exception: pass`: se capturan tipos concretos o se registra la causa. Un blog nuevo se declara en
+`BLOGS_ESTANDAR` de `config.py`. Se comprueba con
+`python3 -m py_compile backends/page-counter/main.py backends/page-counter/config.py backends/page-counter/lib/*.py`.
+
+## Convenciones de docflow
 
 - `bash -n` limpio y ShellCheck (nivel warning) en CI.
 - Funciones privadas de módulo con prefijo `_`.

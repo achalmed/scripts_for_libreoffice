@@ -5,8 +5,9 @@ estado: activo
 # CLAUDE.md — scripts_document_studio (repo `scripts_for_libreoffice`, suite `document_studio`)
 
 Guía para el asistente. En español, como todo el ecosistema. `AGENTS.md` es un enlace a este archivo.
-Léase antes: `README.md` (qué es, uso, deduplicación), `docs/arquitectura.md` (los principios), `suite.yml`
-(raíz y uno por backend), `studio/README.md` (la GUI) y el README del backend que se toque.
+Léase antes: `README.md` (qué es, uso, deduplicación), `docs/README.md` (índice), `docs/arquitectura.md`
+(los principios), `suite.yml` (raíz y uno por backend), `studio/README.md` (la GUI) y el README del backend
+que se toque.
 
 ## Reglas que no se negocian
 
@@ -41,8 +42,25 @@ Léase antes: `README.md` (qué es, uso, deduplicación), `docs/arquitectura.md`
   `suite.yml` de la raíz.
 - **Raíz y logger de `core/`**: ninguna ruta de máquina en código. Excepciones declaradas: docflow tiene
   logger propio (nota en su `suite.yml`); `page-counter` resuelve `~/Documents` con `Path.home()` en su
-  `config.py` (pendiente de pasar a `core/env.py`, 2026-09-20).
+  `config.py` (pendiente en `docs/decisiones.md`).
 - **Español con tildes** en código, mensajes, comentarios y docs; nada del despacho en este repo.
+
+### Dónde va cada cosa nueva
+
+Raíz admitida: `README.md`, `CLAUDE.md`, `AGENTS.md`, `suite.yml`, `LICENSE`, `CHANGELOG.md` (y los no
+documentales `main.py`, `run.sh`, `install.sh`, `requirements.txt`). Ningún otro `.md` en la raíz ni en un
+backend fuera de su `README.md`.
+
+| lo que apareció | va a | nunca a |
+|---|---|---|
+| cómo se instala o se usa una herramienta | su `README.md` §Uso; una opción o una operación, `docs/referencia-docflow.md` o `docs/referencia-pdf-suite.md` | un `GUIA.md` o `ejemplos.md` |
+| cómo funciona por dentro o cómo se extiende | `docs/arquitectura.md`; la GUI, `studio/README.md` | un segundo documento de arquitectura |
+| por qué se decidió algo · un pendiente | `docs/decisiones.md` (entrada fechada · §Pendientes con fecha y dueño) | un `TODO.md`, el README |
+| qué cambió en una versión | `CHANGELOG.md`, bajo la herramienta y su «Sin publicar» | el README de la herramienta |
+| un comando de un `suite.yml` | el `suite.yml`, y se regenera el bloque | el bloque generado a mano |
+
+Lo que hiciste en esta sesión va al mensaje de commit, no a un archivo. Si nada encaja, pregunta antes de
+crear un documento.
 
 ## Cómo se verifica un cambio
 
@@ -54,7 +72,7 @@ python3 core/docs.py verificar scripts_document_studio        # índice de docs/
 cd scripts_document_studio
 bash -n backends/docflow/bin/docflow backends/pdf-suite/main.sh
 shellcheck -x -S warning backends/docflow/bin/docflow backends/docflow/lib/*/*.sh  # lo del CI
-bats backends/docflow/tests/                                  # 33 tests en sandbox (pandoc, soffice, qpdf)
+bats backends/docflow/tests/                                  # pruebas en sandbox (pandoc, soffice, qpdf)
 python3 -m py_compile main.py studio/**/*.py backends/page-counter/*.py backends/page-counter/lib/*.py
 backends/docflow/bin/docflow to-md -n -v ruta/                # simular
 backends/pdf-suite/main.sh -n compress documento.pdf           # simular
@@ -68,11 +86,10 @@ integrada (comando exacto, stdout, stderr, código de salida y duración) y el l
 
 ## Detalles que cuesta redescubrir
 
-- **El CI se dispara solo con cambios en `backends/docflow/`** (`.github/workflows/ci.yml`, `paths`). Hasta
-  DOC6 (2026-09-20) sus rutas empezaban por `docflow-studio/`, el nombre de la carpeta antes de que el
-  repo entero fuese la app: no se ejecutaba nunca. Lo mismo pasaba con `.gitignore`.
+- **El CI se dispara solo con cambios en `backends/docflow/`** (`.github/workflows/ci.yml`, `paths`): si se
+  mueve una carpeta, sus rutas y las de `.gitignore` se mueven con ella, o el CI deja de correr sin avisar.
 - **`page-counter` localiza los blogs con `DIR_HUB = "04 index"` y `SUBDIR_PUBS = "04 index/_pubs"`** en
-  `backends/page-counter/config.py` (desde 2026-09-06 los `pub_*` son submódulos del hub); los nombres
+  `backends/page-counter/config.py` (los `pub_*` son submódulos del hub); los nombres
   lógicos no llevan `pub_`; `blog` y `teching` cuelgan del `_site/` del hub. Cuenta lo **renderizado**:
   con `freeze: true` un conteo viejo significa un render viejo. Su `excel_databases/` es local e ignorado;
   no es el Excel de metadatos de `scripts_quarto_studio`.
@@ -96,10 +113,11 @@ integrada (comando exacto, stdout, stderr, código de salida y duración) y el l
 |---|---|
 | principios comunes, registry, motores, sesiones, caché, extender docflow | `docs/arquitectura.md` |
 | dominios de la GUI, capas, cómo añadir una operación o un dominio, Qt Designer | `studio/README.md` |
-| comandos, formatos, originales, hooks, códigos de salida de docflow | `backends/docflow/README.md` |
-| operaciones, dependencias, bugs corregidos y advertencias de pdf-suite | `backends/pdf-suite/README.md` |
+| uso esencial y límites de docflow | `backends/docflow/README.md` |
+| todas las opciones de docflow; el frontmatter que emite y quién lo consume | `docs/referencia-docflow.md` |
+| operaciones, flags y dependencias de pdf-suite | `docs/referencia-pdf-suite.md`; su puerta, `backends/pdf-suite/README.md` |
 | opciones, blogs y advertencias del contador de páginas | `backends/page-counter/README.md` |
-| casos de uso del contador de páginas | `backends/page-counter/ejemplos.md` |
-| qué se fusionó y por qué; versiones y fechas | `README.md` §Deduplicación, `CHANGELOG.md` |
+| por qué el repo es así; pendientes (instaladores, manifiestos, `core/env.py`) | `docs/decisiones.md` |
+| versiones de cada herramienta | `CHANGELOG.md` |
 | el contrato de suite y los bloques generados | `core/suite.schema.yml`, `core/README.md` |
 | normativa de archivos, fechas, cabeceras y documentación | `meta/NORMATIVA_ARCHIVOS.md` |

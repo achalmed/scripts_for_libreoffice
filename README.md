@@ -49,8 +49,8 @@ xlsx que pandoc no lee, LibreOffice que corrompe su perfil al correr en paralelo
 archivos en los que el fallo de uno no debe detener el resto.
 
 Tres nombres para una sola cosa: la carpeta es `scripts_document_studio`; el remoto en GitHub sigue
-llamándose `scripts_for_libreoffice` (los nombres de repo no cambiaron al fusionar el workspace con el
-vault, 2026-09-06); la suite raíz se llama `document_studio` y la GUI, «DocFlow Studio».
+llamándose `scripts_for_libreoffice` (los nombres de repo de GitHub no siguen a las carpetas del espacio de
+trabajo); la suite raíz se llama `document_studio` y la GUI, «DocFlow Studio».
 
 **No es** una biblioteca y no reescribe los backends: cada motor sigue siendo una CLI independiente, con
 su `suite.yml`, su README y su instalador (docflow, además, con tests Bats y CI); la GUI los invoca como
@@ -64,19 +64,20 @@ fuera de la carpeta que se le pasa y de los directorios XDG de cada backend.
 ./install.sh                                          # una vez: .venv con PySide6, lanzador ~/.local/bin/docflow-studio y entrada de escritorio
 docflow-studio                                        # o ./run.sh (usa .venv si existe), python3 main.py, python3 -m studio
 backends/docflow/install.sh                           # dependencias del sistema de docflow (pandoc, LibreOffice, qpdf, gs, ocrmypdf…)
-backends/pdf-suite/install.sh                         # ídem pdf-suite; la app las diagnostica en Sistema → Diagnóstico
+backends/pdf-suite/main.sh deps                       # dependencias de pdf-suite (su install.sh no sigue al repo: ver su README)
 backends/docflow/bin/docflow doctor                   # qué falta y el comando exacto para tu distro
 backends/docflow/bin/docflow to-md -n -v ruta/        # simular (-n) una conversión a Markdown antes de aplicarla
 backends/docflow/bin/docflow to-md ruta/ --jobs 4 --report html   # lote en paralelo con reporte de sesión
 backends/pdf-suite/main.sh                            # menú interactivo; con operación: compress, merge, split, ocr, metadata…
 backends/pdf-suite/main.sh -n compress documento.pdf  # -n simula sin escribir
-cd backends/page-counter && python3 main.py --help    # conteo de páginas de los blogs (escribe solo su excel_databases/)
-bats backends/docflow/tests/                          # 33 tests de docflow en sandbox aislado
+python3 backends/page-counter/main.py --listar        # conteo de páginas de los blogs (escribe solo su excel_databases/)
+bats backends/docflow/tests/                          # pruebas de docflow en sandbox aislado
 pyside6-designer studio/resources/ui/main_window.ui   # editar el shell de la GUI; se carga en tiempo de ejecución
 ```
 
-Regla de oro: `-n`/`--dry-run` antes de un lote. Solo `page-counter` simula por defecto (no escribe
-fuera de su carpeta); `docflow` y `pdf-suite` escriben de verdad salvo que se les pida lo contrario.
+Regla de oro: `-n`/`--dry-run` antes de un lote en `docflow` y `pdf-suite`, que escriben de verdad salvo
+que se les pida lo contrario. `page-counter` no simula: siempre escribe su Excel, pero solo dentro de su
+carpeta. La app muestra las dependencias que faltan en Sistema → Diagnóstico.
 
 ## Deduplicación
 
@@ -93,32 +94,33 @@ es la puerta de entrada.
 |---|---|---|
 | `main.py` · `run.sh` · `install.sh` | entrada de la GUI (equivale a `python3 -m studio`); lanzador que usa `.venv/` si existe; instalador del frontend (venv, ~/.local/bin/docflow-studio, `.desktop`) | a mano |
 | `studio/` | la aplicación PySide6: `app.py`, `core/` (rutas, QSettings, tareas), `services/` (GUI → línea de comandos exacta), `ui/` (ventana, páginas por dominio, widgets), `studio/resources/ui/main_window.ui` | a mano; `studio/README.md` |
-| `backends/docflow/` | CLI Bash de conversión documental (v3): `bin/docflow`, `lib/{core,engines,formats,commands,helpers}`, `tests/` Bats, `completions/`, `install.sh`, `LICENSE` | a mano; `backends/docflow/README.md` |
-| `backends/pdf-suite/` | CLI Bash de manipulación PDF (v3.0): `main.sh` + `config.sh` + `lib/` (10 módulos), `install.sh` | a mano; `backends/pdf-suite/README.md` |
-| `backends/page-counter/` | Python: `main.py` + `config.py` + `lib/`; `ejemplos.md`; escribe Excel en su `excel_databases/` (ignorado) | a mano; `backends/page-counter/README.md` |
+| `backends/docflow/` | CLI Bash de conversión documental: `bin/docflow`, `lib/{core,engines,formats,commands,helpers}`, `tests/` Bats, `completions/`, `install.sh`, `LICENSE` | a mano; `backends/docflow/README.md` |
+| `backends/pdf-suite/` | CLI Bash de manipulación PDF: `main.sh` + `config.sh` + `lib/` (un módulo por familia de operaciones), `install.sh` | a mano; `backends/pdf-suite/README.md` |
+| `backends/page-counter/` | Python: `main.py` + `config.py` + `lib/`; escribe Excel en su `excel_databases/` (ignorado) | a mano; `backends/page-counter/README.md` |
 | `suite.yml` (raíz y uno por backend) | manifiesto de cada suite (`core/suite.schema.yml`) | a mano; los bloques de README los genera `core/suites.py generar --aplicar` |
-| `docs/` | documentación permanente del repo: `arquitectura.md` (principios comunes a las cuatro suites y diseño de docflow) | a mano; `docs/README.md` lo genera `core/docs.py indice` |
+| `docs/` | documentación permanente: arquitectura, referencia de docflow y de pdf-suite, decisiones | a mano; el índice `docs/README.md` lo genera `core/docs.py indice` |
 | `requirements.txt` | PySide6, pypdf, openpyxl (frontend y page-counter); las dependencias del sistema las instalan los backends | a mano |
 | `.github/workflows/ci.yml` | ShellCheck + Bats de docflow en Ubuntu y Arch (se dispara solo con cambios en `backends/docflow/`) | a mano |
 | `CHANGELOG.md` · `LICENSE` | versiones con fecha ISO de las cuatro suites; MIT | a mano |
-| `.venv/` | entorno del frontend creado por `install.sh` (~660 MB; ignorado) | `install.sh` |
+| `.venv/` | entorno del frontend creado por `install.sh` (ignorado) | `install.sh` |
 
 ## Documentación
 
 | documento | para qué leerlo |
 |---|---|
 | `CLAUDE.md` | reglas para el asistente: invariantes de diseño, cómo verificar, trampas |
-| `docs/arquitectura.md` | los cinco principios (errores por archivo, Bash orquesta y Python parsea…) y el diseño de docflow: registry, motores, soffice aislado, paralelización, sesiones, caché |
+| `docs/README.md` | índice de `docs/` |
+| `docs/arquitectura.md` | los principios comunes (errores por archivo, Bash orquesta y Python parsea…), el diseño de docflow y cómo extender las tres CLIs |
+| `docs/referencia-docflow.md` · `docs/referencia-pdf-suite.md` | todas las opciones, operaciones y códigos de salida de cada CLI |
+| `docs/decisiones.md` | por qué el repo es como es, y sus pendientes |
 | `studio/README.md` | la GUI: dominios, arquitectura por capas, reglas para añadir operaciones y dominios, Qt Designer |
-| `backends/docflow/README.md` | manual de docflow: comandos, formatos, seguridad de originales, caché, watch, hooks, códigos de salida |
-| `backends/pdf-suite/README.md` | manual de pdf-suite: operaciones, dependencias, notas y advertencias |
-| `backends/page-counter/README.md` · `backends/page-counter/ejemplos.md` | manual y casos de uso del contador de páginas |
-| `CHANGELOG.md` | qué versión tiene cada herramienta y desde cuándo |
+| `backends/docflow/README.md` · `backends/pdf-suite/README.md` · `backends/page-counter/README.md` | la puerta de cada herramienta: qué es, uso, estructura y límites |
+| `CHANGELOG.md` | versiones de cada herramienta |
 | `meta/INDICE_SCRIPTS.md` | las 4 suites entre las del workspace (generado) |
 
 ## Límite honesto
 
-- **Solo docflow tiene pruebas** (33 tests Bats, ShellCheck y CI); `pdf-suite`, `page-counter` y la GUI se
+- **Solo docflow tiene pruebas** (Bats, ShellCheck y CI); `pdf-suite`, `page-counter` y la GUI se
   comprueban a mano: `bash -n`, `py_compile`, `--dry-run` y abrir la app.
 - **La GUI no simula**: ejecuta la línea de comandos exacta que muestra en la consola; la simulación es la
   de cada backend (`-n`). Una operación a la vez por tarea; las tareas corren en `QProcess`/`QThread` y se
@@ -129,7 +131,8 @@ es la puerta de entrada.
   `pdf-suite` sigue implementando lo que `docflow pdf` también implementa.
 - **docflow tiene logger propio** (niveles y modo `--quiet`), excepción documentada al logger de
   `core/shell-lib` en su `suite.yml`; `page-counter` resuelve la raíz de los blogs con `Path.home()` en su
-  `config.py`, no con `core/env.py`.
+  `config.py`, no con `core/env.py`. Esto y los defectos conocidos de los instaladores y de los manifiestos
+  de los backends están en `docs/decisiones.md` §Pendientes.
 - **Estado fuera del repo**: config TOML de docflow en `~/.config/docflow/`, sesiones y caché en
   ~/.local/state/docflow/ y ~/.cache/docflow/ (se conservan 50 sesiones), log de la GUI en
   ~/.local/state/docflow-studio/studio.log, ajustes en QSettings (~/.config/achalma/docflow-studio.conf).
