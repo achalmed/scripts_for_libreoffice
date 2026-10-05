@@ -120,4 +120,4 @@ integrada (comando exacto, stdout, stderr, código de salida y duración) y el l
 | por qué el repo es así; pendientes (instaladores, manifiestos, `core/env.py`) | `docs/decisiones.md` |
 | versiones de cada herramienta | `CHANGELOG.md` |
 | el contrato de suite y los bloques generados | `core/suite.schema.yml`, `core/README.md` |
-| normativa de archivos, fechas, cabeceras y documentación | `meta/NORMATIVA_ARCHIVOS.md` |
+| normativa de archivos, fechas, cabeceras y documentación | `meta/docs/historial/NORMATIVA_ARCHIVOS.md` |

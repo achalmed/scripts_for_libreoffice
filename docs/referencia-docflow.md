@@ -261,7 +261,7 @@ como fallo y el lote continúa.
 ## Consumidores
 
 `docflow to-md` escribe, salvo `--no-metadata`, un frontmatter YAML con las claves de
-`meta/NORMATIVA_ARCHIVOS.md` §6.2 (`backends/docflow/lib/helpers/office_meta.py`), en este orden: `id`,
+`meta/docs/historial/NORMATIVA_ARCHIVOS.md` §6.2 (`backends/docflow/lib/helpers/office_meta.py`), en este orden: `id`,
 `tipo: original`, `titulo` (o el nombre del archivo), `estado: activo`; si el documento los trae, `creado`
 (fecha), `autor`, `asunto`, `descripcion`, `palabras_clave`, `categoria`, `idioma`, `modificado`,
 `modificado_por`, `organizacion`, `paginas`, `palabras` y `laminas`; y siempre `origen` (nombre del archivo
