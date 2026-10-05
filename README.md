@@ -137,5 +137,5 @@ es la puerta de entrada.
   ~/.local/state/docflow/ y ~/.cache/docflow/ (se conservan 50 sesiones), log de la GUI en
   ~/.local/state/docflow-studio/studio.log, ajustes en QSettings (~/.config/achalma/docflow-studio.conf).
 - **Lo que no hace**: no edita documentos (convierte, manipula, cuenta), no sincroniza con Calibre ni
-  Zotero (eso es `scripts_for_calibre`), no compila LaTeX (`scripts_for_latex`).
+  Zotero (eso es `scripts_for_calibre`), no compila LaTeX (`scripts-latex`).
 - Licencia MIT (`LICENSE`; docflow conserva la suya en `backends/docflow/LICENSE`).
